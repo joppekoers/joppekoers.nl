@@ -35,7 +35,6 @@ RUN cd frontend && npm prune --omit=dev
 # ========== BUILDER CMS ============
 FROM node:18-alpine as builder-cms
 WORKDIR /app/cmsj
-RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev
 COPY cmsj/package.json cmsj/package-lock.json ./
 RUN npm ci
 
