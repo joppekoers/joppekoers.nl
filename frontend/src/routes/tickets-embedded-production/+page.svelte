@@ -5,4 +5,4 @@
 	<script src="https://shop.celebratix.io/celebratix-index.js" type="module"></script>
 </svelte:head>
 
-<div id="celebratix-ticket-widget" data-tos="" data-channel="joppe" />
+<div id="celebratix-ticket-widget" data-tos="" data-channel="joppe3" />
