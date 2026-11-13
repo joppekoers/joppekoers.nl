@@ -40,11 +40,3 @@ export async function renderPage(pathname: string) {
 		html: (await readIndexHtml()).replace('</head>', `${head}</head>`),
 	}
 }
-
-export function sitemapXml() {
-	const urls = Object.entries(pages)
-		.filter(([, meta]) => meta.indexable)
-		.map(([pathname]) => `<url><loc>${siteUrl}${pathname}</loc></url>`)
-		.join('')
-	return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`
-}
