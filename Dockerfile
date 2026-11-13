@@ -14,62 +14,49 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
 COPY projectGenerator ./projectGenerator
 RUN cd projectGenerator && bun run lint:check && bun run build
 
-# ======== FRONTEND DEPS ============
-FROM oven/bun:alpine AS deps-frontend
-WORKDIR /app
-COPY frontend/package.json frontend/bun.lock ./
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-	bun install --frozen-lockfile --production
-
 # ======== BUILDER FRONTEND =========
 FROM oven/bun:alpine AS builder-frontend
-WORKDIR /app
+WORKDIR /app/frontend
 COPY frontend/package.json frontend/bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
 	bun install --frozen-lockfile
+COPY shared ../shared
 COPY frontend ./
 
 ENV NODE_ENV=production
 RUN bun run check && bun run lint:check && bun run build
 
-# =========== CMS DEPS ==============
-FROM oven/bun:alpine AS deps-cms
+# ========= BACKEND DEPS ============
+FROM oven/bun:alpine AS deps-backend
 WORKDIR /app
-COPY cmsj/package.json cmsj/bun.lock ./
+COPY backend/package.json backend/bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
 	bun install --frozen-lockfile --production
 
-# ========== BUILDER CMS ============
-FROM oven/bun:alpine AS builder-cms
-WORKDIR /app
-COPY cmsj/package.json cmsj/bun.lock ./
+# ======== BUILDER BACKEND ==========
+FROM oven/bun:alpine AS builder-backend
+WORKDIR /app/backend
+COPY backend/package.json backend/bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
 	bun install --frozen-lockfile
-COPY cmsj ./
-
-ENV NODE_ENV=production
-RUN bun run build
-
-# =============== CMS ===============
-FROM oven/bun:alpine AS cms
-ENV NODE_ENV=production
-WORKDIR /app
-COPY --from=deps-cms /app/node_modules ./node_modules
-COPY --from=builder-cms /app/package.json ./package.json
-COPY --from=builder-cms /app/build ./build
-CMD ["bun", "./build/app.js"]
+COPY shared ../shared
+COPY backend ./
+RUN bun run check && bun run lint:check
 
 # ======== PROJECT GENERATOR ========
 FROM builder-project-generator AS project-generator
 WORKDIR /app/projectGenerator
 CMD ["bun", "run", "start"]
 
-# ============= FRONTEND =============
-FROM oven/bun:distroless AS frontend
+# =============== APP ===============
+FROM oven/bun:alpine AS app
 ENV NODE_ENV=production
 ENV PORT=8080
-WORKDIR /app
-COPY --from=deps-frontend /app/node_modules ./node_modules
-COPY --from=builder-frontend /app/package.json ./package.json
-COPY --from=builder-frontend /app/build ./build
-CMD ["./build/index.js"]
+WORKDIR /app/backend
+COPY --from=deps-backend /app/node_modules ./node_modules
+COPY --from=builder-backend /app/backend/package.json ./package.json
+COPY --from=builder-backend /app/backend/assets ./assets
+COPY --from=builder-backend /app/backend/src ./src
+COPY --from=builder-backend /app/shared/api.ts ../shared/api.ts
+COPY --from=builder-frontend /app/frontend/dist ../frontend/dist
+CMD ["bun", "src/app.ts"]

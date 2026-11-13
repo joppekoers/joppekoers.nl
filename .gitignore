@@ -14,3 +14,5 @@ projectImg/
 dist/
 
 !.gitkeep
+
+.env

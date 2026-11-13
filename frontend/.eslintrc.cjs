@@ -3,7 +3,7 @@ module.exports = {
 	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:svelte/recommended', 'prettier'],
 	parser: '@typescript-eslint/parser',
 	plugins: ['@typescript-eslint'],
-	ignorePatterns: ['/build', '/.svelte-kit', '/package'],
+	ignorePatterns: ['/build', '/dist', '/.svelte-kit', '/package'],
 	parserOptions: {
 		sourceType: 'module',
 		ecmaVersion: 2020,
@@ -45,5 +45,7 @@ module.exports = {
 		'no-constant-condition': ['error', { checkLoops: false }],
 		eqeqeq: ['error', 'smart'],
 		'@typescript-eslint/ban-ts-comment': 'off',
+		'svelte/valid-compile': ['error', { ignoreWarnings: true }],
+		'svelte/no-unused-svelte-ignore': 'off',
 	},
 }

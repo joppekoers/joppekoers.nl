@@ -1,30 +1,16 @@
 version: "3.7"
 services:
-  frontend:
-    container_name: frontend
+  joppekoers.nl:
+    container_name: joppekoers.nl
     restart: unless-stopped
     build:
       context: .
-      target: frontend
+      target: app
     volumes:
-      - ./frontend/static/uploads:/app/frontend/static/uploads
+      - ./backend/projects:/app/backend/projects
+      - ./backend/media:/app/backend/media
+      - ./backend/uploads:/app/backend/uploads
     environment:
       - PORT=8080
-      - CMS_URL=http://localhost:1337
-      - CMS_INTERNAL_URL=http://cms:1337
     ports:
       - 8080:8080
-  cms:
-    container_name: cms
-    restart: unless-stopped
-    build:
-      context: .
-      target: cms
-    volumes:
-      - ./cmsj/projects:/app/projects
-      - ./cmsj/media:/app/media
-    environment:
-      - PORT=1337
-      - CMS_URL=http://localhost:1337
-    ports:
-      - 1337:1337

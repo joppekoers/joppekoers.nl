@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { dev } from '$app/environment'
 	import Header from '$lib/Header.svelte'
-	const title = dev ? 'DEV Joppe Koers.nl' : 'Joppe Koers.nl'
+	const title = import.meta.env.DEV ? 'DEV Joppe Koers.nl' : 'Joppe Koers.nl'
 </script>
 
 <svelte:head>

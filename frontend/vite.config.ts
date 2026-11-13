@@ -1,23 +1,29 @@
-import { sveltekit } from '@sveltejs/kit/vite'
-import { searchForWorkspaceRoot, type UserConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { fileURLToPath } from 'url'
+import { type UserConfig } from 'vite'
 import { imagetools } from '@zerodevx/svelte-img/vite'
 
+const backend = `http://127.0.0.1:${process.env.BACKEND_PORT || 8080}`
+
 const config: UserConfig = {
-	plugins: [
-		sveltekit(),
-		imagetools(),
-		{
-			name: 'filepath',
-			transform(code, id) {
-				return code.replace('FILEPATH', `'${id}'`)
-			},
+	plugins: [svelte(), imagetools()],
+	publicDir: 'static',
+	resolve: {
+		alias: {
+			$root: fileURLToPath(new URL('./src', import.meta.url)),
+			$lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
+			'@shared': fileURLToPath(new URL('../shared', import.meta.url)),
 		},
-	],
+	},
 	server: {
 		port: Number(process.env.PORT) || 5173,
 		host: true,
-		fs: {
-			allow: [searchForWorkspaceRoot(process.cwd()), '/static/uploads/'],
+		proxy: {
+			'/projects': backend,
+			'/media': backend,
+			'/cv': backend,
+			'^/drop/.+': backend,
+			'/.well-known': backend,
 		},
 	},
 }

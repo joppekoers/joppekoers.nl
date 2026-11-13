@@ -1,29 +1,17 @@
 version: '3.7'
 services:
-  frontend:
-    container_name: frontend
-    image: ghcr.io/sirmorfield/joppekoers.nl/frontend:latest
+  joppekoers.nl:
+    container_name: joppekoers.nl
+    image: ghcr.io/sirmorfield/joppekoers.nl/app:latest
     restart: unless-stopped
     labels:
       - com.centurylinklabs.watchtower.enable=true
     volumes:
-      - ./frontend/static/img/projectImg:/app/build/client/img/projectImg
+      - ./backend/projects:/app/backend/projects
+      - ./backend/media:/app/backend/media
+      - ./backend/uploads:/app/backend/uploads
     ports:
       - 8080:8080
-
-  cms:
-    container_name: cms
-    image: ghcr.io/sirmorfield/joppekoers.nl/cms:latest
-    restart: unless-stopped
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
-    volumes:
-      - ./cmsj/projects:/app/projects
-      - ./cmsj/media:/app/media
-    environment:
-      - PORT=1377
-    ports:
-      - 1377:1377
 
   watchtower:
     container_name: watchtower
@@ -35,5 +23,8 @@ services:
       - WATCHTOWER_LABEL_ENABLE=true
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_INCLUDE_RESTARTING=true
-      - WATCHTOWER_POLL_INTERVAL=30
       - WATCHTOWER_ROLLING_RESTART=true
+      - WATCHTOWER_HTTP_API_UPDATE=true
+      - WATCHTOWER_HTTP_API_TOKEN=${WATCHTOWER_HTTP_API_TOKEN:?WATCHTOWER_HTTP_API_TOKEN must be set}
+    ports:
+      - 127.0.0.1:8081:8080

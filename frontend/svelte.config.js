@@ -1,7 +1,6 @@
-import adapter from '@sveltejs/adapter-node'
 import preprocess from 'svelte-preprocess'
 
-/** @type {import('@sveltejs/kit').Config} */
+/** @type {import('@sveltejs/vite-plugin-svelte').SvelteConfig} */
 const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
@@ -11,18 +10,6 @@ const config = {
 			postcss: true,
 		}),
 	],
-
-	kit: {
-		adapter: adapter({ out: 'build' }),
-		alias: {
-			$root: './src',
-			$lib: './src/lib',
-			'@shared': '../shared',
-		},
-		csrf: {
-			checkOrigin: false,
-		},
-	},
 }
 
 export default config

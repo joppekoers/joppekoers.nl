@@ -24,14 +24,9 @@ function sizeOf(path: string): Promise<{ height: number; width: number; type: st
 	})
 }
 
-export type Project = {
-	name: string
-	images: {
-		url: string
-		width: number
-		height: number
-	}[]
-}
+import type { ProjectListItem } from '../../shared/api'
+
+export type Project = ProjectListItem
 
 export async function getImageMetaData(path: string): Promise<{ width: number; height: number }> {
 	const size = await sizeOf(path)
@@ -65,7 +60,7 @@ export async function dirToProject(dir: string): Promise<Project> {
 
 	const images = await Promise.all(
 		imagePaths.map(async (image: string) => ({
-			url: new URL(`/projects/${dir}/${image}`, env.cmsUrl).toString(),
+			url: `/projects/${dir}/${image}`,
 			...(await getImageMetaData(path.join(env.projects, dir, image))),
 		})),
 	)

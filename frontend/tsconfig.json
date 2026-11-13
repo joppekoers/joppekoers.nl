@@ -1,6 +1,12 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"types": ["vite/client", "svelte"],
+		"noEmit": true,
+		"verbatimModuleSyntax": true,
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -9,8 +15,6 @@
 		"skipLibCheck": true,
 		"sourceMap": false, // debugger
 
-		// If you want to overwrite includes/excludes, make sure to copy over the relevant includes/excludes
-		// from the referenced tsconfig.json - TypeScript does not merge them in
 		"paths": {
 			"$root": ["./src"],
 			"$root/*": ["./src/*"],
@@ -18,5 +22,6 @@
 			"$lib/*": ["./src/lib/*"],
 			"@shared/*": ["../shared/*"]
 		}
-	}
+	},
+	"include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "../shared/api.ts"]
 }

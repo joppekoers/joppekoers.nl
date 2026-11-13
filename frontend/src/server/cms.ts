@@ -1,7 +1,5 @@
-// prettier-ignore
-const example = [ { name: 'I am a string', images: [ { url: 'http://127.0.0.1:8080/projects/big-hammer/favicon.png', width: 64, height: 64, }, ], }, ]
-
 import { env } from '$root/env'
+import type { ApiRoutes } from '@shared/api'
 
 export type Image = {
 	format: 'heic' | 'heif' | 'avif' | 'webp' | 'jpeg' | 'jpg' | 'png' | 'gif' | 'tiff'
@@ -64,7 +62,7 @@ async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit): Promise<
 }
 
 export async function getProjects(): Promise<Project[]> {
-	const data = await fetch2<typeof example>(new URL(`/projects-list`, env.cmsInternalUrl))
+	const data = await fetch2<ApiRoutes['/projects-list']>(new URL(`/projects-list`, env.cmsUrl))
 	if (data instanceof Error) {
 		console.error(data)
 		return []

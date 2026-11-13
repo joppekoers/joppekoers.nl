@@ -8,8 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_FRONTEND: ghcr.io/${{ github.repository }}/frontend
-  IMAGE_NAME_CMS: ghcr.io/${{ github.repository }}/cms
+  IMAGE_NAME_APP: ghcr.io/${{ github.repository }}/app
 
 jobs:
   build-and-publish:
@@ -29,24 +28,17 @@ jobs:
       # can be removed if the user is the owner of the repository and the repository name are lowercase
       - name: Set lower case owner name
         run: |
-          echo "IMAGE_NAME_FRONTEND=${IMAGE_NAME_FRONTEND,,}" >>${GITHUB_ENV}
-          echo "IMAGE_NAME_CMS=${IMAGE_NAME_CMS,,}" >>${GITHUB_ENV}
+          echo "IMAGE_NAME_APP=${IMAGE_NAME_APP,,}" >>${GITHUB_ENV}
         env:
-          IMAGE_NAME_FRONTEND: "${{ env.IMAGE_NAME_FRONTEND }}"
-          IMAGE_NAME_CMS: "${{ env.IMAGE_NAME_CMS }}"
+          IMAGE_NAME_APP: "${{ env.IMAGE_NAME_APP }}"
 
-      - name: Build and push frontend
+      - name: Build and push app
         uses: docker/build-push-action@v4
         with:
           context: .
-          target: frontend
+          target: app
           push: true
-          tags: ${{ env.IMAGE_NAME_FRONTEND }}
+          tags: ${{ env.IMAGE_NAME_APP }}
 
-      - name: Build and push cms
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          target: cms
-          push: true
-          tags: ${{ env.IMAGE_NAME_CMS }}
+      - name: Trigger Watchtower update
+        run: curl --fail --silent --show-error --max-time 300 -H "Authorization: Bearer ${{ secrets.WATCHTOWER_HTTP_API_TOKEN }}" "${{ secrets.WATCHTOWER_URL }}/v1/update"

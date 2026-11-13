@@ -21,9 +21,7 @@
 				<tr>
 					<td class="item"><b>{info.label}</b></td>
 					{#if info.link}
-						<a href={info.link} class="link">
-							<td class="item" id="name"> {info.value}</td>
-						</a>
+						<td class="item" id="name"><a href={info.link} class="link"> {info.value}</a></td>
 					{:else}
 						<td class="item" id="name"> {info.value}</td>
 					{/if}
