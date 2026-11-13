@@ -51,10 +51,10 @@ async function preTransform(input: Path, output: Path, width?: number) {
 
 	switch (info.rotation) {
 		case 180:
-			transformations.push('-rotate 180')
+			transformations.push('-auto-orient')
 			break
 		case 90:
-			transformations.push('-rotate 90')
+			transformations.push('-auto-orient')
 			break
 		case 0:
 			break

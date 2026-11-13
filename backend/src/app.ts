@@ -1,5 +1,4 @@
 import express, { Response } from 'express'
-import { createIPX, ipxFSStorage } from 'ipx'
 import path from 'path'
 import { env } from './env'
 import { generateIndex } from './middlewares/generateIndex'
@@ -22,13 +21,9 @@ export function sendError(err: Error, res: Response) {
 ensureDir(env.cacheDir)
 ensureDir(env.mediaDir)
 
-const ipx = createIPX({
-	storage: ipxFSStorage({ dir: env.projects }),
-})
-
 const app = express()
 app.use('/projects', (req, res) => {
-	resizeImage(ipx, req, res)
+	resizeImage(req, res)
 })
 
 const memoizedIndex = memoize(generateIndex, { promise: true, maxAge: 1000 * 60 })

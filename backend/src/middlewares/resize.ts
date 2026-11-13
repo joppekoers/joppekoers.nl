@@ -1,9 +1,9 @@
 import etag from 'etag'
 import { Request, Response } from 'express'
 import fs from 'fs'
-import { IPX } from 'ipx'
 import { hash } from 'ohash'
 import path from 'path'
+import sharp from 'sharp'
 import type { ImageFormat } from '../../../shared/api'
 import { cacheControl } from '../cacheControl'
 import { env } from '../env'
@@ -63,7 +63,28 @@ function parseImageQuery(query: Request['query']) {
 	}
 }
 
-export async function resizeImage(ipx: IPX, req: Request, res: Response) {
+function resolveSource(requestPath: string) {
+	const root = path.resolve(env.projects)
+	const filePath = path.resolve(root, `.${decodeURIComponent(requestPath)}`)
+	return filePath.startsWith(root + path.sep) ? filePath : undefined
+}
+
+async function renderImage(filePath: string, modifiers: { f: ImageFormat; w?: string; h?: string }) {
+	// The stored pixels are upright but many files carry a stale EXIF orientation; raw output drops it so no encoder rotates.
+	const { data, info } = await sharp(filePath)
+		.resize({
+			width: modifiers.w ? Number(modifiers.w) : undefined,
+			height: modifiers.h ? Number(modifiers.h) : undefined,
+			withoutEnlargement: true,
+		})
+		.raw()
+		.toBuffer({ resolveWithObject: true })
+	return sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
+		.toFormat(modifiers.f === 'jpg' ? 'jpeg' : modifiers.f)
+		.toBuffer()
+}
+
+export async function resizeImage(req: Request, res: Response) {
 	if (req.path === '/') {
 		res.set('Cache-Control', cacheControl.notFound)
 		res.sendStatus(404)
@@ -78,7 +99,7 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 	}
 	const { version, mimeType, modifiers } = query
 	const successCacheControl = version ? cacheControl.immutable : cacheControl.unversionedImage
-	const imageHash = hash({ id: req.path, version, ...modifiers })
+	const imageHash = hash({ id: req.path, version, renderer: 2, ...modifiers })
 	const imgPath = path.join(env.cacheDir, `${imageHash}.raw`)
 	const typePath = path.join(env.cacheDir, `${imageHash}.mime`)
 	const etagPath = path.join(env.cacheDir, `${imageHash}.etag`)
@@ -104,24 +125,20 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 		console.error('Could not read cached image meta, regenerating', type instanceof Error ? type : etag)
 	}
 
-	const img = exceptionAsValue(() => ipx(req.path, modifiers))
-	if (img instanceof Error) {
-		return sendImageError(img, res)
+	const sourcePath = exceptionAsValue(() => resolveSource(req.path))
+	const stat = typeof sourcePath === 'string' ? await fs.promises.stat(sourcePath).catch(() => undefined) : undefined
+	if (typeof sourcePath !== 'string' || !stat?.isFile()) {
+		res.set('Cache-Control', cacheControl.notFound)
+		res.status(404).send('Image not found')
+		return
 	}
-	const src = await exceptionAsValue(() => img.getSourceMeta())
-	if (src instanceof Error) {
-		return sendImageError(src, res)
-	}
+	res.set('Last-Modified', stat.mtime.toUTCString())
 
-	if (src.mtime) {
-		res.set('Last-Modified', src.mtime.toUTCString())
-	}
-
-	const data = await exceptionAsValue(() => img.process())
+	const data = await exceptionAsValue(() => renderImage(sourcePath, modifiers))
 	if (data instanceof Error) {
 		return sendImageError(data, res)
 	}
-	const etagV = etag(data.data)
+	const etagV = etag(data)
 	res.set('Cache-Control', successCacheControl)
 	res.set('ETag', etagV)
 	if (req.header('if-none-match') === etagV) {
@@ -129,13 +146,13 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 		return
 	}
 	res.set('Content-Type', mimeType)
-	res.send(data.data)
+	res.send(data)
 	logReq(false, start, req.path, req.query)
 
 	void Promise.all([
 		fs.promises.writeFile(typePath, mimeType, 'utf-8'),
 		fs.promises.writeFile(etagPath, etagV, 'utf-8'),
-		fs.promises.writeFile(imgPath, data.data),
+		fs.promises.writeFile(imgPath, data),
 	]).catch(error => {
 		console.error(new Error(error))
 	})

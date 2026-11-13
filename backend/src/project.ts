@@ -13,18 +13,15 @@ async function sizeOf(path: string) {
 	if (!dimensions.width || !dimensions.height || !dimensions.type) {
 		return new Error(`No dimensions or type: ${JSON.stringify(dimensions)}`)
 	}
-	// EXIF orientations 5-8 store the image sideways; the resizer rotates it upright.
-	const sideways = (dimensions.orientation ?? 1) >= 5
-	return {
-		width: sideways ? dimensions.height : dimensions.width,
-		height: sideways ? dimensions.width : dimensions.height,
-		type: dimensions.type,
-	}
+	return { width: dimensions.width, height: dimensions.height, type: dimensions.type }
 }
 
 import type { ProjectListItem } from '../../shared/api'
 
 export type Project = ProjectListItem
+
+// Bump when rendered output changes, so images cached as immutable get new URLs.
+const renderVersion = 2
 
 async function getImageMetaData(path: string) {
 	const size = await sizeOf(path)
@@ -64,7 +61,7 @@ export async function dirToProject(dir: string) {
 			const imagePath = path.join(env.projects, dir, image)
 			const { mtimeMs } = await fs.promises.stat(imagePath)
 			return {
-				url: `/projects/${dir}/${image}?v=${Math.floor(mtimeMs).toString(36)}`,
+				url: `/projects/${dir}/${image}?v=${Math.floor(mtimeMs).toString(36)}.${renderVersion}`,
 				...(await getImageMetaData(imagePath)),
 			}
 		}),
