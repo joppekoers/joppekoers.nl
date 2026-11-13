@@ -1,12 +1,11 @@
 <script lang="ts">
 	import Header from '$lib/Header.svelte'
-	import { normalizePath, notFoundPage, pages } from '@shared/seo'
-
-	const { title } = pages[normalizePath(window.location.pathname)] ?? notFoundPage
+	const title = import.meta.env.DEV ? 'DEV Joppe Koers.nl' : 'Joppe Koers.nl'
 </script>
 
 <svelte:head>
-	<title>{import.meta.env.DEV ? `DEV ${title}` : title}</title>
+	<title>{title}</title>
+	<meta name="description" content="This is a webside build, hosted and maintained by Joppe Koers" />
 </svelte:head>
 
 <div id="root">
