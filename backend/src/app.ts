@@ -10,7 +10,7 @@ import { ensureDir } from './util'
 import { drop } from './drop'
 import { cacheControl } from './cacheControl'
 import { syncCdnRouter } from './syncCdn'
-import { renderPage, sitemapXml } from './seo'
+import { renderPage } from './seo'
 import type { ApiRoutes } from '../../shared/api'
 
 export function sendError(err: Error, res: Response) {
@@ -95,10 +95,6 @@ app.use(
 app.use('/assets', (_, res) => {
 	res.set('Cache-Control', cacheControl.notFound)
 	res.sendStatus(404)
-})
-app.get('/sitemap.xml', (_, res) => {
-	res.set('Cache-Control', cacheControl.static)
-	res.type('application/xml').send(sitemapXml())
 })
 app.get('/{*splat}', async (req, res) => {
 	let page
