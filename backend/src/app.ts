@@ -2,7 +2,7 @@ import express, { Response } from 'express'
 import path from 'path'
 import { env } from './env'
 import { generateIndex } from './middlewares/generateIndex'
-import { resizeImage } from './middlewares/resize'
+import { resizeImage, warmImageCache } from './middlewares/resize'
 import { Project } from './project'
 import memoize from 'memoizee'
 import { ensureDir } from './util'
@@ -46,6 +46,7 @@ app.get<never, ApiRoutes['/projects-list']>('/projects-list', async (_, res) => 
 app.use(
 	syncCdnRouter(() => {
 		memoizedIndex.clear()
+		void warmImageCache()
 		projects = loadProjects()
 	}),
 )
@@ -98,6 +99,7 @@ app.get('/{*splat}', (_, res) => {
 })
 
 app.listen(env.port, () => {
+	void warmImageCache()
 	console.log(`listening on: http://localhost:${env.port}`)
 	console.log(`reading projects from: ${path.normalize(env.projects)}`)
 })

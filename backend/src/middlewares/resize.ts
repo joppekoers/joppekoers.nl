@@ -8,6 +8,7 @@ import type { ImageFormat } from '../../../shared/api'
 import { cacheControl } from '../cacheControl'
 import { env } from '../env'
 import { exceptionAsValue, fsExists } from '../util'
+import { generateIndex } from './generateIndex'
 
 function logReq(cache: boolean, start: [number, number], path: string, modifiers: unknown) {
 	const [s, ns] = process.hrtime(start)
@@ -69,7 +70,7 @@ function resolveSource(requestPath: string) {
 	return filePath.startsWith(root + path.sep) ? filePath : undefined
 }
 
-async function renderImage(filePath: string, modifiers: { f: ImageFormat; w?: string; h?: string }) {
+async function renderImage(filePath: string, modifiers: Modifiers) {
 	// The stored pixels are upright but many files carry a stale EXIF orientation; raw output drops it so no encoder rotates.
 	const { data, info } = await sharp(filePath)
 		.resize({
@@ -82,6 +83,67 @@ async function renderImage(filePath: string, modifiers: { f: ImageFormat; w?: st
 	return sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
 		.toFormat(modifiers.f === 'jpg' ? 'jpeg' : modifiers.f)
 		.toBuffer()
+}
+
+type Modifiers = { f: ImageFormat; w?: string; h?: string }
+
+function cacheFiles(id: string, version: string | undefined, modifiers: Modifiers) {
+	const imageHash = hash({ id, version, renderer: 2, ...modifiers })
+	return {
+		imgPath: path.join(env.cacheDir, `${imageHash}.raw`),
+		typePath: path.join(env.cacheDir, `${imageHash}.mime`),
+		etagPath: path.join(env.cacheDir, `${imageHash}.etag`),
+	}
+}
+
+async function storeRendered(files: ReturnType<typeof cacheFiles>, data: Buffer, mimeType: string, etagV: string) {
+	await Promise.all([
+		fs.promises.writeFile(files.typePath, mimeType, 'utf-8'),
+		fs.promises.writeFile(files.etagPath, etagV, 'utf-8'),
+		fs.promises.writeFile(files.imgPath, data),
+	])
+}
+
+const warmFormats = ['avif', 'jpg'] as const
+
+async function warmAll() {
+	const start = Date.now()
+	const projects = await generateIndex(env.projects).catch(() => [])
+	let rendered = 0
+	let failed = 0
+	for (const image of projects.flatMap(project => project.images)) {
+		const url = new URL(image.url, 'http://localhost')
+		const id = url.pathname.replace(/^\/projects/, '')
+		const version = url.searchParams.get('v') ?? undefined
+		const sourcePath = resolveSource(id)
+		if (!sourcePath) {
+			continue
+		}
+		for (const f of warmFormats) {
+			const files = cacheFiles(id, version, { f })
+			if (await fsExists(files.imgPath)) {
+				continue
+			}
+			const data = await exceptionAsValue(() => renderImage(sourcePath, { f }))
+			if (data instanceof Error) {
+				failed++
+				console.error('could not pre-render', id, f, data.message)
+				continue
+			}
+			await storeRendered(files, data, mimeTypes[f], etag(data))
+			rendered++
+		}
+	}
+	console.log(
+		`image cache warm: rendered ${rendered}, failed ${failed}, in ${((Date.now() - start) / 1000).toFixed(1)}s`,
+	)
+}
+
+let warming = Promise.resolve()
+
+export function warmImageCache() {
+	warming = warming.then(warmAll).catch(err => console.error('image cache warm failed', err))
+	return warming
 }
 
 export async function resizeImage(req: Request, res: Response) {
@@ -99,10 +161,8 @@ export async function resizeImage(req: Request, res: Response) {
 	}
 	const { version, mimeType, modifiers } = query
 	const successCacheControl = version ? cacheControl.immutable : cacheControl.unversionedImage
-	const imageHash = hash({ id: req.path, version, renderer: 2, ...modifiers })
-	const imgPath = path.join(env.cacheDir, `${imageHash}.raw`)
-	const typePath = path.join(env.cacheDir, `${imageHash}.mime`)
-	const etagPath = path.join(env.cacheDir, `${imageHash}.etag`)
+	const files = cacheFiles(req.path, version, modifiers)
+	const { imgPath, typePath, etagPath } = files
 
 	if (await fsExists(imgPath)) {
 		const [type, etag] = await Promise.all([
@@ -149,11 +209,7 @@ export async function resizeImage(req: Request, res: Response) {
 	res.send(data)
 	logReq(false, start, req.path, req.query)
 
-	void Promise.all([
-		fs.promises.writeFile(typePath, mimeType, 'utf-8'),
-		fs.promises.writeFile(etagPath, etagV, 'utf-8'),
-		fs.promises.writeFile(imgPath, data),
-	]).catch(error => {
+	void storeRendered(files, data, mimeType, etagV).catch(error => {
 		console.error(new Error(error))
 	})
 }

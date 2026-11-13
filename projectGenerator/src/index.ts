@@ -127,7 +127,7 @@ async function runJob(job: Job) {
 	// const thumbnail = await processImage(job.imgs[0] as string, job.output, 'thumbnail', 500)
 
 	const images: Promise<Image>[] = job.imgs.map((image, i) => {
-		const name = i.toString().padStart(2, '0')
+		const name = (i * 10).toString().padStart(3, '0')
 		return processImage(image, job.output, name)
 	})
 
