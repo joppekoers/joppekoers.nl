@@ -29,22 +29,22 @@ export interface Project {
 	images: Image[]
 }
 
-function imageToImg(image: Image): ImageExport {
+function imageToImg(image: Image) {
 	return {
 		src: image.name,
 		width: image.width,
 		height: image.height,
 		alt: image.name,
-	}
+	} satisfies ImageExport
 }
 
-export function projectToProjectExport(project: Project): ProjectExport {
+export function projectToProjectExport(project: Project) {
 	return {
 		id: project.id,
 		thumbnail: imageToImg(project.thumbnail),
 		imgs: project.images.map(imageToImg),
 		root: `${path.join('/img/projectImg/', project.id)}/`,
-	}
+	} satisfies ProjectExport
 }
 
 export interface ImageInfo {
@@ -55,7 +55,7 @@ export interface ImageInfo {
 	rotation: 0 | 90 | 180 | 'error'
 }
 
-export async function imageInfo(path: string): Promise<ImageInfo> {
+export async function imageInfo(path: string) {
 	const identity = await exec(`identify -format "%wx%h" '${path}'`)
 	if (identity.stderr) {
 		console.error(identity.stderr)
@@ -90,7 +90,7 @@ export async function imageInfo(path: string): Promise<ImageInfo> {
 	return result
 }
 
-export function imageInfoString(info: ImageInfo): string {
+export function imageInfoString(info: ImageInfo) {
 	const wh = `${info.width}x${info.height}`.padEnd(9)
 	const p = path.relative(process.cwd(), info.path)
 	return `${wh} ${prettyBytes(info.size, { minimumFractionDigits: 2 }).padStart(11)} ${p}`

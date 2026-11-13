@@ -4,7 +4,7 @@ import { default as sanitizeFilename } from 'sanitize-filename'
 import { Path, exec, imageInfo, Job, Image, Project, projectToProjectExport, imageInfoString, ImageInfo } from './util'
 import chalk from 'chalk'
 
-function sanatize(path: string): string {
+function sanatize(path: string) {
 	return path
 		.split('/')
 		.map(name => sanitizeFilename(name.replace(/\s/g, '-').toLowerCase()))
@@ -21,7 +21,7 @@ fs.mkdirSync(outputPath, { recursive: true })
 
 const exportPath = '/export'
 
-function getTmpPath(pathIn: Path): Path {
+function getTmpPath(pathIn: Path) {
 	const parse = path.parse(pathIn)
 	return path.join(parse.dir, `${parse.name}.tmp${parse.ext}`)
 }
@@ -44,7 +44,7 @@ function console2(level: 'warn' | 'err', error: string) {
 	}
 }
 
-async function preTransform(input: Path, output: Path, width?: number): Promise<{ info: ImageInfo; shouldDelete: boolean }> {
+async function preTransform(input: Path, output: Path, width?: number) {
 	let info = await imageInfo(input)
 
 	const transformations: string[] = []
@@ -75,7 +75,7 @@ async function preTransform(input: Path, output: Path, width?: number): Promise<
 		const newPath = path.join(output, inputFileName)
 
 		tmpPath = getTmpPath(newPath)
-		await exec(`convert ${transformations.join(' ')} '${input}' '${tmpPath}'`).catch(err => {
+		await exec(`magick '${input}' ${transformations.join(' ')} '${tmpPath}'`).catch(err => {
 			console2('err', `Error while transforming ${input} ${err}`)
 		})
 		info = await imageInfo(tmpPath)
@@ -87,7 +87,7 @@ async function preTransform(input: Path, output: Path, width?: number): Promise<
 /**
  * @param fileName the name of the file without extension to be generated
  */
-async function processImage(input: Path, output: Path, fileName: string, width?: number): Promise<Image> {
+async function processImage(input: Path, output: Path, fileName: string, width?: number) {
 	if (fileName.indexOf('.') !== -1) {
 		throw new Error('fileName must not contain extension')
 	}
@@ -96,7 +96,7 @@ async function processImage(input: Path, output: Path, fileName: string, width?:
 	const { info: inputImageInfo, shouldDelete } = await preTransform(input, output, width)
 	const newPath = path.join(output, fileName)
 
-	const { stderr } = await exec(`convert -quality ${QUALITY} '${inputImageInfo.path}' '${newPath}'`)
+	const { stderr } = await exec(`magick '${inputImageInfo.path}' -quality ${QUALITY} '${newPath}'`)
 
 	if (shouldDelete) {
 		fs.unlink(inputImageInfo.path)
@@ -117,7 +117,7 @@ async function processImage(input: Path, output: Path, fileName: string, width?:
 	}
 }
 
-async function runJob(job: Job): Promise<Project> {
+async function runJob(job: Job) {
 	// remove all previously generated files
 	await fs.emptyDir(job.output)
 	if (job.imgs.length <= 0) {
@@ -140,13 +140,14 @@ async function runJob(job: Job): Promise<Project> {
 }
 
 // Generate TODOs
-async function getJobs(inputsPath: Path): Promise<Job[]> {
+async function getJobs(inputsPath: Path) {
 	const files = await fs.promises.readdir(inputsPath)
 	const dirs = files.filter(file => fs.statSync(path.join(inputPath, file)).isDirectory())
 
 	const inputs = dirs.map(async dir => {
 		const inputPath = path.join(inputsPath, dir)
 		const imgs = (await fs.promises.readdir(inputPath))
+			.sort()
 			.map(img => path.join(inputPath, img))
 			.filter(name => {
 				const isImage = !!name.match(/\.jpg$/)

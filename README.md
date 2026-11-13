@@ -20,6 +20,7 @@ Tech learned in chronological order
 ## Usage
 
 ```shell
+git submodule update --init   # project images in ./cdn.joppekoers.nl
 cd frontend
 bun install
 bun run dev

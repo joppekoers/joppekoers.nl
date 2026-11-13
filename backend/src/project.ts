@@ -1,31 +1,26 @@
 import { imageSizeFromFile } from 'image-size/fromFile'
 import { z } from 'zod'
-import { safeParseJSON } from './util'
+import { isIgnored, safeParseJSON } from './util'
 import fs from 'fs'
 import path from 'path'
 import { env } from './env'
 
-function sizeOf(path: string): Promise<{ height: number; width: number; type: string } | Error> {
-	return new Promise(resolve => {
-		imageSizeFromFile(path).then(dimensions => {
-			if (!dimensions || !dimensions.width || !dimensions.height || !dimensions.type) {
-				return resolve(new Error(`No dimensions or type: ${JSON.stringify(dimensions)}`))
-			}
-
-			resolve({
-				width: dimensions.width,
-				height: dimensions.height,
-				type: dimensions.type,
-			})
-		}, resolve)
-	})
+async function sizeOf(path: string) {
+	const dimensions = await imageSizeFromFile(path).catch((err: Error) => err)
+	if (dimensions instanceof Error) {
+		return dimensions
+	}
+	if (!dimensions.width || !dimensions.height || !dimensions.type) {
+		return new Error(`No dimensions or type: ${JSON.stringify(dimensions)}`)
+	}
+	return { width: dimensions.width, height: dimensions.height, type: dimensions.type }
 }
 
 import type { ProjectListItem } from '../../shared/api'
 
 export type Project = ProjectListItem
 
-async function getImageMetaData(path: string): Promise<{ width: number; height: number }> {
+async function getImageMetaData(path: string) {
 	const size = await sizeOf(path)
 	if (size instanceof Error) {
 		return { width: 0, height: 0 }
@@ -38,7 +33,7 @@ const Metadata = z.strictObject({
 })
 type Metadata = z.infer<typeof Metadata>
 
-async function readMetadata(path: string): Promise<Metadata | Error> {
+async function readMetadata(path: string) {
 	const data = await fs.promises.readFile(path, 'utf-8').catch(error => error)
 	if (data instanceof Error) {
 		return data
@@ -51,9 +46,12 @@ async function readMetadata(path: string): Promise<Metadata | Error> {
 	return parse.success ? parse.data : parse.error
 }
 
-export async function dirToProject(dir: string): Promise<Project> {
-	const paths = await fs.promises.readdir(path.join(env.projects, dir))
-	const imagePaths = paths.filter(file => file !== 'metadata.json' && !file.includes('ignore'))
+export async function dirToProject(dir: string) {
+	const paths = (await fs.promises.readdir(path.join(env.projects, dir), { withFileTypes: true }))
+		.filter(entry => entry.isFile())
+		.map(entry => entry.name)
+		.sort()
+	const imagePaths = paths.filter(file => file !== 'metadata.json' && !isIgnored(file))
 
 	const images = await Promise.all(
 		imagePaths.map(async (image: string) => {

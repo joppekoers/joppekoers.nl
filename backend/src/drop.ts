@@ -10,12 +10,7 @@ ensureDir(storePath)
 
 const fileExists = async (path: string) => !!(await fs.stat(path).catch(() => false))
 
-type File = {
-	path: string
-	name: string
-	id: string
-}
-async function getFileById(id: string): Promise<File | undefined> {
+async function getFileById(id: string) {
 	const files = await fs.readdir(storePath)
 	const file = files.find(file => file.startsWith(`${id}-`))
 	if (!file) {
@@ -28,7 +23,7 @@ async function getFileById(id: string): Promise<File | undefined> {
 	}
 }
 
-async function canUploadFile(size: number): Promise<boolean> {
+async function canUploadFile(size: number) {
 	const maxSize = 10 * 1000 * 1000 * 1000
 	// Early return if file is too big
 	if (size > maxSize) {
@@ -41,7 +36,7 @@ async function canUploadFile(size: number): Promise<boolean> {
 	return totalSize + size < maxSize
 }
 
-async function getStorePath(file: string, idLength = 4): Promise<File> {
+async function getStorePath(file: string, idLength = 4) {
 	for (let i = 0; i < 100; i++) {
 		const id = Math.random()
 			.toString()

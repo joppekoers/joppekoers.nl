@@ -36,6 +36,13 @@ export default tseslint.config(
 			'no-constant-condition': ['error', { checkLoops: false }],
 			eqeqeq: ['error', 'smart'],
 			'@typescript-eslint/ban-ts-comment': 'off',
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector: ':function[returnType]',
+					message: 'Do not write explicit return types; let TypeScript infer them.',
+				},
+			],
 		},
 	},
 )

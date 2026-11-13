@@ -1,0 +1,4 @@
+[submodule "cdn.joppekoers.nl"]
+	path = cdn.joppekoers.nl
+	url = https://github.com/joppekoers/cdn.joppekoers.nl.git
+	branch = main

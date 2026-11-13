@@ -5,7 +5,7 @@
 	"main": "src/app.ts",
 	"type": "module",
 	"scripts": {
-		"dev": "NODE_ENV=development bun --watch src/app.ts",
+		"dev": "NODE_ENV=development PROJECTS_DIR=../cdn.joppekoers.nl/projectImg CACHE_DIR=../cache bun --watch src/app.ts",
 		"check": "tsc --noEmit",
 		"start": "bun src/app.ts",
 		"lint:check": "DEBUG=eslint:cli-engine eslint --max-warnings 0 --cache --cache-location node_modules/.eslintcache . && knip",

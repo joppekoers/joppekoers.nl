@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-function unknownToError(err: unknown): Error {
+function unknownToError(err: unknown) {
 	if (err instanceof Error) {
 		return err
 	}
@@ -28,7 +28,7 @@ export function exceptionAsValue<Fn extends SyncFn | SyncFn>(fn: Fn) {
 	}
 }
 
-export async function fsExists(path: string): Promise<boolean> {
+export async function fsExists(path: string) {
 	return !!(await fs.promises.stat(path).catch(() => false))
 }
 
@@ -38,18 +38,15 @@ export function ensureDir(dir: string) {
 	}
 }
 
-export function safeParseJSON<T>(data: string): T | Error {
+export function safeParseJSON<T>(data: string) {
 	try {
-		return JSON.parse(data)
+		return JSON.parse(data) as T
 	} catch (error) {
 		return error as Error
 	}
 }
 
-export async function filterAsync<T>(
-	array: T[],
-	predicate: (value: T, index: number, array: T[]) => Promise<boolean>,
-): Promise<T[]> {
+export async function filterAsync<T>(array: T[], predicate: (value: T, index: number, array: T[]) => Promise<boolean>) {
 	const fail = Symbol()
 	return (
 		await Promise.all(
@@ -58,4 +55,8 @@ export async function filterAsync<T>(
 			}),
 		)
 	).filter(i => i !== fail) as T[]
+}
+
+export function isIgnored(name: string) {
+	return name.startsWith('ignore') || name.startsWith('zz-ignore')
 }

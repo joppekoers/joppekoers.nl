@@ -12,7 +12,7 @@ import { ensureDir } from './util'
 const execFileAsync = promisify(execFile)
 const gitTimeoutMs = 5 * 60 * 1000
 
-async function git(args: string[]): Promise<string> {
+async function git(args: string[]) {
 	try {
 		const { stdout } = await execFileAsync('git', args, { cwd: env.cdnRepoDir, timeout: gitTimeoutMs })
 		return stdout.trim()
@@ -22,19 +22,19 @@ async function git(args: string[]): Promise<string> {
 	}
 }
 
-async function sync(): Promise<SyncCdnResult> {
+async function sync() {
 	if (!fs.existsSync(path.join(env.cdnRepoDir, '.git'))) {
 		ensureDir(env.cdnRepoDir)
 		await git(['clone', '--branch', 'main', env.cdnRepoUrl, '.'])
-		return { from: null, to: await git(['rev-parse', 'HEAD']) }
+		return { from: null, to: await git(['rev-parse', 'HEAD']) } satisfies SyncCdnResult
 	}
 	const from = await git(['rev-parse', 'HEAD'])
 	await git(['fetch', 'origin', 'main'])
 	await git(['reset', '--hard', 'origin/main'])
-	return { from, to: await git(['rev-parse', 'HEAD']) }
+	return { from, to: await git(['rev-parse', 'HEAD']) } satisfies SyncCdnResult
 }
 
-function isAuthorized(header: string | undefined): boolean {
+function isAuthorized(header: string | undefined) {
 	if (!env.syncToken || !header) {
 		return false
 	}
@@ -45,7 +45,7 @@ function isAuthorized(header: string | undefined): boolean {
 
 let running = false
 
-export function syncCdnRouter(onSynced: () => void): Router {
+export function syncCdnRouter(onSynced: () => void) {
 	const router = Router()
 	router.post('/api/sync-cdn', async (req, res) => {
 		res.set('Cache-Control', cacheControl.privateNoStore)

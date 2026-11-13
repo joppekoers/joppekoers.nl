@@ -13,19 +13,18 @@ export type Project = {
 	content: ImageSource[]
 }
 
-function bucket(px: number): number {
+function bucket(px: number) {
 	return px < 200 ? Math.ceil(px / 50) * 50 : Math.ceil(px / 200) * 200
 }
 
-export function imageUrl(image: ImageSource, cssWidth: number): string {
+export function imageUrl(image: ImageSource, cssWidth: number) {
 	const width = Math.min(Math.max(bucket(cssWidth * Math.min(window.devicePixelRatio, 2)), 50), image.width)
 	const url = new URL(image.url)
-	url.searchParams.set('format', 'webp')
-	url.searchParams.set('resize', `${width}x${Math.round((width / image.width) * image.height)}`)
+	url.searchParams.set('width', width.toString())
 	return url.toString()
 }
 
-async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit): Promise<Error | T> {
+async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit) {
 	let resp
 	try {
 		resp = await fetch(input, init)
@@ -37,13 +36,13 @@ async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit): Promise<
 	}
 
 	try {
-		return await resp.json()
+		return (await resp.json()) as T
 	} catch {
 		return new Error('Failed to JSON parse response')
 	}
 }
 
-export async function getProjects(): Promise<Project[]> {
+export async function getProjects() {
 	const data = await fetch2<ApiRoutes['/projects-list']>(new URL(`/projects-list`, env.cmsUrl))
 	if (data instanceof Error) {
 		console.error(data)

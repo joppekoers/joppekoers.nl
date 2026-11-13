@@ -5,7 +5,7 @@ FROM oven/bun:alpine AS builder-project-generator
 ENV NODE_ENV=production
 WORKDIR /app
 
-RUN apk --no-cache add imagemagick exiftool
+RUN apk --no-cache add imagemagick imagemagick-jpeg imagemagick-webp exiftool
 
 COPY shared ./shared
 COPY projectGenerator/package.json projectGenerator/bun.lock ./projectGenerator/

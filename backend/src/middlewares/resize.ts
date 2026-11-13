@@ -25,6 +25,35 @@ function sendImageError(err: Error, res: Response) {
 	res.status(status).send(err.message)
 }
 
+const allowedParams = new Set(['v', 'width', 'height'])
+const positiveInt = /^[1-9]\d{0,4}$/
+
+function parseImageQuery(query: Request['query']) {
+	const unknown = Object.keys(query).filter(key => !allowedParams.has(key))
+	if (unknown.length > 0) {
+		return new Error(`Unknown query parameter: ${unknown.join(', ')}. Use width or height.`)
+	}
+	const { v, width, height } = query
+	if ([v, width, height].some(value => value !== undefined && typeof value !== 'string')) {
+		return new Error('Query parameters must be given once')
+	}
+	if (width !== undefined && height !== undefined) {
+		return new Error('Use either width or height, not both')
+	}
+	const size = (width ?? height) as string | undefined
+	if (size !== undefined && !positiveInt.test(size)) {
+		return new Error('width and height must be positive integers')
+	}
+	return {
+		version: v as string | undefined,
+		modifiers: {
+			f: 'webp',
+			...(width !== undefined ? { w: size } : {}),
+			...(height !== undefined ? { h: size } : {}),
+		},
+	}
+}
+
 export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 	if (req.path === '/') {
 		res.set('Cache-Control', cacheControl.notFound)
@@ -32,9 +61,15 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 		return
 	}
 	const start = process.hrtime()
-	const { v: version, ...modifiers } = req.query as Record<string, string>
+	const query = parseImageQuery(req.query)
+	if (query instanceof Error) {
+		res.set('Cache-Control', cacheControl.noStore)
+		res.status(400).send(query.message)
+		return
+	}
+	const { version, modifiers } = query
 	const successCacheControl = version ? cacheControl.immutable : cacheControl.unversionedImage
-	const imageHash = hash({ id: req.path, ...req.query })
+	const imageHash = hash({ id: req.path, version, ...modifiers })
 	const imgPath = path.join(env.cacheDir, `${imageHash}.raw`)
 	const typePath = path.join(env.cacheDir, `${imageHash}.mime`)
 	const etagPath = path.join(env.cacheDir, `${imageHash}.etag`)

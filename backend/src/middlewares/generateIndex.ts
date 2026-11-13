@@ -1,14 +1,14 @@
 import fs from 'fs'
 import path from 'path'
-import { Project, dirToProject } from '../project'
-import { filterAsync } from '../util'
+import { dirToProject } from '../project'
+import { filterAsync, isIgnored } from '../util'
 
 // JS does not have async function chaining :(
-export async function generateIndex(projectsPath: string): Promise<Project[]> {
+export async function generateIndex(projectsPath: string) {
 	const folders = await fs.promises.readdir(projectsPath)
 
 	const projectFolders = await filterAsync(folders, async (file: string) => {
-		if (file.startsWith('.')) {
+		if (file.startsWith('.') || isIgnored(file)) {
 			return false
 		}
 		const stat = await fs.promises.stat(path.join(projectsPath, file))
