@@ -10,7 +10,6 @@ import { ensureDir } from './util'
 import { drop } from './drop'
 import { cacheControl } from './cacheControl'
 import { syncCdnRouter } from './syncCdn'
-import { renderPage } from './seo'
 import type { ApiRoutes } from '../../shared/api'
 
 export function sendError(err: Error, res: Response) {
@@ -96,19 +95,9 @@ app.use('/assets', (_, res) => {
 	res.set('Cache-Control', cacheControl.notFound)
 	res.sendStatus(404)
 })
-app.get('/{*splat}', async (req, res) => {
-	let page
-	try {
-		page = await renderPage(req.path)
-	} catch (err) {
-		sendError(err as Error, res)
-		return
-	}
-	res.set('Cache-Control', page.status === 404 ? cacheControl.notFound : cacheControl.html)
-	if (!page.indexable) {
-		res.set('X-Robots-Tag', 'noindex')
-	}
-	res.status(page.status).type('html').send(page.html)
+app.get('/{*splat}', (_, res) => {
+	res.set('Cache-Control', cacheControl.html)
+	res.sendFile(path.join(env.frontendDir, 'index.html'))
 })
 
 app.listen(env.port, () => {
