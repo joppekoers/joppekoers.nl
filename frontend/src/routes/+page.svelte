@@ -9,6 +9,7 @@
 </script>
 
 <Root>
+	<h1 class="sr-only">Joppe Koers</h1>
 	{#await data then data}
 		<ImageGallery items={['note' as const, ...data.projects]}>
 			{#snippet item(entry)}
@@ -18,7 +19,7 @@
 						projects and a mix of programming related stuff. Since I can remember I've always wanted to make
 						stuff. To accomplish this I acquired a number of skills of which you can see the result below.
 						Do you want me to make you something? See the projects below to see what I'm capable of. You can
-						contact me form the
+						contact me from the
 						<a href="/contact" class="hover:underline">/contact</a> page.
 					</Note>
 				{:else}
