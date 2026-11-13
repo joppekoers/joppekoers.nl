@@ -9,7 +9,7 @@
 	on:mouseleave={() => navContent.classList.add('hidden')}>
 	<div class="flex items-center shrink-0 text-white mr-6 bg-main-dark rounded-xl p-2">
 		<a class="text-white no-underline" href="/">
-			<img src={logo} class="h-6 w-auto" alt="logo" width="1217" height="250" />
+			<img src={logo} class="h-6 w-auto" alt="Joppe Koers" width="1217" height="250" />
 		</a>
 	</div>
 
