@@ -1,6 +1,6 @@
 // export type Brand<K, T> = K & { __brand: T }
 export type Path = string
-export type FileName = string
+type FileName = string
 import { ImageExport, ProjectExport } from '@shared/types'
 import * as path from 'path'
 import fs from 'fs-extra'
@@ -29,7 +29,7 @@ export interface Project {
 	images: Image[]
 }
 
-export function imageToImg(image: Image): ImageExport {
+function imageToImg(image: Image): ImageExport {
 	return {
 		src: image.name,
 		width: image.width,

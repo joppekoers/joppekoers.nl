@@ -3,4 +3,4 @@
 	width="1000"
 	height="1000"
 	id="celebratix-ticket-shop"
-	title="Ticket Shop" />
+	title="Ticket Shop"></iframe>

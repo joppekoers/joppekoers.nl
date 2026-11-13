@@ -10,18 +10,21 @@
 
 <Root>
 	{#await data then data}
-		<ImageGallery>
-			<Note>
-				Hello and welcome to Joppe Koers' website. This is where you'll find my portfolio, personal projects and
-				a mix of programming related stuff. Since I can remember I've always wanted to make stuff. To accomplish
-				this I acquired a number of skills of which you can see the result below. Do you want me to make you
-				something? See the projects below to see what I'm capable of. You can contact me form the
-				<a href="/contact" class="hover:underline">/contact</a> page.
-			</Note>
-
-			{#each data.projects as project}
-				<ProjectCard {project} />
-			{/each}
+		<ImageGallery items={['note' as const, ...data.projects]}>
+			{#snippet item(entry)}
+				{#if entry === 'note'}
+					<Note>
+						Hello and welcome to Joppe Koers' website. This is where you'll find my portfolio, personal
+						projects and a mix of programming related stuff. Since I can remember I've always wanted to make
+						stuff. To accomplish this I acquired a number of skills of which you can see the result below.
+						Do you want me to make you something? See the projects below to see what I'm capable of. You can
+						contact me form the
+						<a href="/contact" class="hover:underline">/contact</a> page.
+					</Note>
+				{:else}
+					<ProjectCard project={entry} />
+				{/if}
+			{/snippet}
 		</ImageGallery>
 	{/await}
 </Root>

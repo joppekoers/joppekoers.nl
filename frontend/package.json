@@ -6,36 +6,32 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"check": "svelte-check --tsconfig ./tsconfig.json",
-		"lint:check": "prettier --plugin-search-dir . --check . && DEBUG=eslint:cli-engine eslint --cache --cache-location node_modules/.eslintcache .",
-		"lint:fix": "prettier --plugin-search-dir . --write . && DEBUG=eslint:cli-engine eslint --cache --cache-location node_modules/.eslintcache --fix ."
+		"check": "svelte-check --fail-on-warnings --tsconfig ./tsconfig.json",
+		"lint:check": "prettier --check . && DEBUG=eslint:cli-engine eslint --max-warnings 0 --cache --cache-location node_modules/.eslintcache . && knip",
+		"lint:fix": "prettier --write . && DEBUG=eslint:cli-engine eslint --cache --cache-location node_modules/.eslintcache --fix ."
 	},
 	"dependencies": {
-		"path": "^0.12.7",
-		"photoswipe": "5.3.8"
+		"photoswipe": "^5.4.4"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
-		"@types/node": "^20.3.3",
-		"@typescript-eslint/eslint-plugin": "^5.61.0",
-		"@typescript-eslint/parser": "^5.61.0",
-		"@zerodevx/svelte-img": "^1.2.11",
-		"autoprefixer": "^10.4.14",
-		"eslint": "^8.44.0",
-		"eslint-config-prettier": "^8.8.0",
-		"eslint-plugin-svelte": "^2.32.2",
-		"postcss": "^8.4.24",
-		"postcss-load-config": "^4.0.1",
-		"prettier": "^2.8.8",
-		"prettier-plugin-svelte": "^2.10.1",
-		"svelte": "^5",
+		"@tailwindcss/vite": "^4.3.5",
+		"@types/node": "^26.6.6",
+		"eslint": "^10.14.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-svelte": "^3.24.1",
+		"globals": "^17.14.0",
+		"knip": "^6.45.1",
+		"prettier": "^3.10.1",
+		"prettier-plugin-svelte": "^4.1.1",
+		"svelte": "^5.57.3",
 		"svelte-check": "^4.7.8",
-		"svelte-preprocess": "^6",
-		"tailwindcss": "^3.3.2",
-		"tslib": "^2.6.0",
-		"typescript": "^5.1.6",
+		"tailwindcss": "^4.3.5",
+		"typescript": "^6",
+		"typescript-eslint": "^8.72.2",
 		"vite": "^8.3.8",
-		"zod": "^3.21.4"
+		"zod": "^4.6.7"
 	},
 	"type": "module"
 }

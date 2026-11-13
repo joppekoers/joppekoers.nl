@@ -1,17 +1,14 @@
-module.exports = {
-	env: {
-		browser: false,
-		es2021: true,
-		node: true,
-	},
-	parser: '@typescript-eslint/parser',
-	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'prettier'],
-	parserOptions: {
+import js from '@eslint/js'
+import prettier from 'eslint-plugin-prettier/recommended'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config({ ignores: ['build/'] }, js.configs.recommended, ...tseslint.configs.recommended, prettier, {
+	languageOptions: {
 		ecmaVersion: 'latest',
 		sourceType: 'module',
+		globals: globals.node,
 	},
-	plugins: ['@typescript-eslint', 'prettier'],
-	ignorePatterns: ['build'],
 	rules: {
 		'array-callback-return': 'error',
 		curly: ['error', 'all'],
@@ -35,16 +32,5 @@ module.exports = {
 		'no-constant-condition': ['error', { checkLoops: false }],
 		eqeqeq: ['error', 'smart'],
 		'@typescript-eslint/ban-ts-comment': 'off',
-
-		// managed by prettier
-		// indent: ['error', 'tab'],
-		// 'linebreak-style': ['error', 'unix'],
-		// quotes: ['error', 'single'],
-		// semi: ['error', 'never'],
-		// 'max-len': ['error', { code: 120, ignoreUrls: true }],
-		// 'arrow-parens': ['error', 'as-needed'],
-		// 'brace-style': ['error', 'stroustrup'],
-		// 'comma-dangle': ['error', 'always-multiline'],
-		// curly: ['error', 'multi-or-nest'],
 	},
-}
+})

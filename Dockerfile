@@ -12,7 +12,7 @@ COPY projectGenerator/package.json projectGenerator/bun.lock ./projectGenerator/
 RUN --mount=type=cache,target=/root/.bun/install/cache \
 	cd projectGenerator && bun install --frozen-lockfile
 COPY projectGenerator ./projectGenerator
-RUN cd projectGenerator && bun run lint:check && bun run build
+RUN cd projectGenerator && bun run lint:check && bun run check
 
 # ======== BUILDER FRONTEND =========
 FROM oven/bun:alpine AS builder-frontend

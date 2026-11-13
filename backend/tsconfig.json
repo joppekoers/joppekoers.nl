@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"module": "NodeNext",
-		"moduleResolution": "node",
+		"module": "Preserve",
+		"moduleResolution": "bundler",
+		"types": ["node"],
 		"esModuleInterop": true,
-		"outDir": "./build",
 		// "declaration": true,
 		// code quality options
 		"allowJs": false,

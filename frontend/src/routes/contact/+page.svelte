@@ -15,30 +15,32 @@
 </script>
 
 <Root>
-	<div id="root" class="shadow">
+	<div id="root" class="shadow-sm">
 		<table id="contact-table">
-			{#each infos as info}
-				<tr>
-					<td class="item"><b>{info.label}</b></td>
-					{#if info.link}
-						<td class="item" id="name"><a href={info.link} class="link"> {info.value}</a></td>
-					{:else}
-						<td class="item" id="name"> {info.value}</td>
-					{/if}
-					<!-- <td class="item">
+			<tbody>
+				{#each infos as info (info.label)}
+					<tr>
+						<td class="item"><b>{info.label}</b></td>
+						{#if info.link}
+							<td class="item" id="name"><a href={info.link} class="link"> {info.value}</a></td>
+						{:else}
+							<td class="item" id="name"> {info.value}</td>
+						{/if}
+						<!-- <td class="item">
 						<button class="copy-button" on:click={() => navigator.clipboard.writeText('asda')}>
 							<img src={copySymbol} alt="copySymbol" />
 							copy
 						</button>
 					</td> -->
-				</tr>
-			{/each}
+					</tr>
+				{/each}
+			</tbody>
 		</table>
 	</div>
 </Root>
 
 <style>
-	.shadow:hover {
+	.shadow-sm:hover {
 		box-shadow: 15px 15px 22px rgba(0, 0, 0, 0.4);
 	}
 

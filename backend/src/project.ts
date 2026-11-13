@@ -1,4 +1,4 @@
-import getImageSize from 'image-size'
+import { imageSizeFromFile } from 'image-size/fromFile'
 import { z } from 'zod'
 import { safeParseJSON } from './util'
 import fs from 'fs'
@@ -7,10 +7,7 @@ import { env } from './env'
 
 function sizeOf(path: string): Promise<{ height: number; width: number; type: string } | Error> {
 	return new Promise(resolve => {
-		getImageSize(path, (err, dimensions) => {
-			if (err) {
-				return resolve(err)
-			}
+		imageSizeFromFile(path).then(dimensions => {
 			if (!dimensions || !dimensions.width || !dimensions.height || !dimensions.type) {
 				return resolve(new Error(`No dimensions or type: ${JSON.stringify(dimensions)}`))
 			}
@@ -20,7 +17,7 @@ function sizeOf(path: string): Promise<{ height: number; width: number; type: st
 				height: dimensions.height,
 				type: dimensions.type,
 			})
-		})
+		}, resolve)
 	})
 }
 
@@ -28,7 +25,7 @@ import type { ProjectListItem } from '../../shared/api'
 
 export type Project = ProjectListItem
 
-export async function getImageMetaData(path: string): Promise<{ width: number; height: number }> {
+async function getImageMetaData(path: string): Promise<{ width: number; height: number }> {
 	const size = await sizeOf(path)
 	if (size instanceof Error) {
 		return { width: 0, height: 0 }
@@ -41,7 +38,7 @@ const Metadata = z.strictObject({
 })
 type Metadata = z.infer<typeof Metadata>
 
-export async function readMetadata(path: string): Promise<Metadata | Error> {
+async function readMetadata(path: string): Promise<Metadata | Error> {
 	const data = await fs.promises.readFile(path, 'utf-8').catch(error => error)
 	if (data instanceof Error) {
 		return data

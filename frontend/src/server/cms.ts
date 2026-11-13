@@ -1,7 +1,7 @@
 import { env } from '$root/env'
 import type { ApiRoutes } from '@shared/api'
 
-export type Image = {
+type Image = {
 	format: 'heic' | 'heif' | 'avif' | 'webp' | 'jpeg' | 'jpg' | 'png' | 'gif' | 'tiff'
 	height: number
 	width: number
@@ -56,7 +56,7 @@ async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit): Promise<
 
 	try {
 		return await resp.json()
-	} catch (e) {
+	} catch {
 		return new Error('Failed to JSON parse response')
 	}
 }

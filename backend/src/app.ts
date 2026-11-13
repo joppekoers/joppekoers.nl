@@ -1,5 +1,5 @@
 import express, { Response } from 'express'
-import { createIPX } from 'ipx'
+import { createIPX, ipxFSStorage } from 'ipx'
 import path from 'path'
 import { env } from './env'
 import { generateIndex } from './middlewares/generateIndex'
@@ -20,7 +20,7 @@ ensureDir(env.cacheDir)
 ensureDir(env.mediaDir)
 
 const ipx = createIPX({
-	dir: env.projects,
+	storage: ipxFSStorage({ dir: env.projects }),
 	maxAge: env.maxAge,
 })
 
@@ -50,7 +50,7 @@ app.get('/.well-known/apple-developer-merchantid-domain-association', (_, res) =
 })
 
 app.use(express.static(env.frontendDir))
-app.get('*', (_, res) => res.sendFile(path.join(env.frontendDir, 'index.html')))
+app.get('/{*splat}', (_, res) => res.sendFile(path.join(env.frontendDir, 'index.html')))
 
 app.listen(env.port, () => {
 	console.log(`listening on: http://localhost:${env.port}`)

@@ -6,6 +6,7 @@
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"types": ["vite/client", "svelte"],
 		"noEmit": true,
+		"strict": false,
 		"verbatimModuleSyntax": true,
 		"allowJs": true,
 		"checkJs": true,

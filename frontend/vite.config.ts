@@ -1,12 +1,12 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
+import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'url'
 import { type UserConfig } from 'vite'
-import { imagetools } from '@zerodevx/svelte-img/vite'
 
 const backend = `http://127.0.0.1:${process.env.BACKEND_PORT || 8080}`
 
 const config: UserConfig = {
-	plugins: [svelte(), imagetools()],
+	plugins: [tailwindcss(), svelte()],
 	publicDir: 'static',
 	resolve: {
 		alias: {

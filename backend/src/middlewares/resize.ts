@@ -54,7 +54,7 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 	if (img instanceof Error) {
 		return sendError(img, res)
 	}
-	const src = await exceptionAsValue(() => img.src())
+	const src = await exceptionAsValue(() => img.getSourceMeta())
 	if (src instanceof Error) {
 		return sendError(src, res)
 	}
@@ -72,7 +72,7 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 	res.set('Cache-Control', `max-age=${maxAge}, public, s-maxage=${maxAge}`)
 
 	// Get converted image
-	const data = await exceptionAsValue(() => img.data())
+	const data = await exceptionAsValue(() => img.process())
 	if (data instanceof Error) {
 		return sendError(data, res)
 	}

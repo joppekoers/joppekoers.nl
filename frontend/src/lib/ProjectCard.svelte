@@ -4,7 +4,6 @@
 	import 'photoswipe/style.css'
 	import PhotoSwipe from 'photoswipe'
 	import type { ImageSource, Project } from '$root/server/cms'
-	import Img from '@zerodevx/svelte-img'
 
 	function toDataSource({ srcset, alt, formats }: ImageSource) {
 		return {
@@ -32,13 +31,17 @@
 </script>
 
 <!-- TODO: sizes="25vw" is horrible -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div on:keydown={() => null} on:click={() => openPhotoSwhipe()}>
-	<Img
+	<img
+		loading="lazy"
 		decoding="auto"
 		class="h-auto w-full rounded-lg project"
 		sizes="25vw"
-		src={project.header.formats}
+		srcset={project.header.srcset}
+		src={project.header.formats[0].src}
+		width={project.header.formats[0].width}
+		height={project.header.formats[0].height}
 		alt={project.header.alt} />
 </div>
 
