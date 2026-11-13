@@ -2,7 +2,7 @@ version: '3.7'
 services:
   joppekoers.nl:
     container_name: joppekoers.nl
-    image: ghcr.io/sirmorfield/joppekoers.nl/app:latest
+    image: ghcr.io/joppekoers/joppekoers.nl/app:latest
     restart: unless-stopped
     labels:
       - com.centurylinklabs.watchtower.enable=true
