@@ -7,6 +7,11 @@ export type ProjectListItem = {
 	}[]
 }
 
+export type SyncCdnResult = {
+	from: string | null
+	to: string
+}
+
 export type ApiRoutes = {
 	'/projects-list': ProjectListItem[]
 }

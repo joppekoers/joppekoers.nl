@@ -50,6 +50,8 @@ CMD ["bun", "run", "start"]
 
 # =============== APP ===============
 FROM oven/bun:alpine AS app
+RUN apk add --no-cache git \
+	&& git config --system --add safe.directory /app/cdn
 ENV NODE_ENV=production
 ENV PORT=8080
 WORKDIR /app/backend

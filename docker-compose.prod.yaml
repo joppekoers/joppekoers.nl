@@ -7,9 +7,15 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=true
     volumes:
-      - ./backend/projects:/app/backend/projects
+      - ./cdn:/app/cdn
+      - ./cache:/app/cache
       - ./backend/media:/app/backend/media
       - ./backend/uploads:/app/backend/uploads
+    environment:
+      - PROJECTS_DIR=/app/cdn/projectImg
+      - CACHE_DIR=/app/cache
+      - CDN_REPO_DIR=/app/cdn
+      - SYNC_TOKEN=${SYNC_TOKEN:?SYNC_TOKEN must be set}
     ports:
       - 8080:8080
 

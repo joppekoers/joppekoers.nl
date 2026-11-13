@@ -9,6 +9,7 @@ import memoize from 'memoizee'
 import { ensureDir } from './util'
 import { drop } from './drop'
 import { cacheControl } from './cacheControl'
+import { syncCdnRouter } from './syncCdn'
 import type { ApiRoutes } from '../../shared/api'
 
 export function sendError(err: Error, res: Response) {
@@ -30,16 +31,29 @@ app.use('/projects', (req, res) => {
 	resizeImage(ipx, req, res)
 })
 
-const generateIndexMemoized = env.dev ? generateIndex : memoize(generateIndex, { promise: true, maxAge: 1000 * 60 })
-let projects: Promise<Project[]> | Project[] = generateIndexMemoized(env.projects)
+const memoizedIndex = memoize(generateIndex, { promise: true, maxAge: 1000 * 60 })
+const generateIndexMemoized = env.dev ? generateIndex : memoizedIndex
+const loadProjects = () =>
+	generateIndexMemoized(env.projects).catch((err: Error) => {
+		console.error('could not read projects:', err.message)
+		return [] as Project[]
+	})
+let projects: Promise<Project[]> | Project[] = loadProjects()
 app.get<never, ApiRoutes['/projects-list']>('/projects-list', async (_, res) => {
 	if (projects instanceof Promise) {
 		projects = await projects
 	}
 	res.set('Cache-Control', cacheControl.projectsList)
 	res.json(projects)
-	projects = await generateIndexMemoized(env.projects)
+	projects = await loadProjects()
 })
+
+app.use(
+	syncCdnRouter(() => {
+		memoizedIndex.clear()
+		projects = loadProjects()
+	}),
+)
 
 app.use(
 	'/media',

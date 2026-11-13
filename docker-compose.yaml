@@ -7,10 +7,15 @@ services:
       context: .
       target: app
     volumes:
-      - ./backend/projects:/app/backend/projects
+      - ./cdn:/app/cdn
+      - ./cache:/app/cache
       - ./backend/media:/app/backend/media
       - ./backend/uploads:/app/backend/uploads
     environment:
       - PORT=8080
+      - PROJECTS_DIR=/app/cdn/projectImg
+      - CACHE_DIR=/app/cache
+      - CDN_REPO_DIR=/app/cdn
+      - SYNC_TOKEN=${SYNC_TOKEN:-}
     ports:
       - 8080:8080
