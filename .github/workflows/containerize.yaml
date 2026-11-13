@@ -41,4 +41,5 @@ jobs:
           tags: ${{ env.IMAGE_NAME_APP }}
 
       - name: Trigger Watchtower update
-        run: curl --fail --silent --show-error --max-time 300 -H "Authorization: Bearer ${{ secrets.WATCHTOWER_HTTP_API_TOKEN }}" "${{ secrets.WATCHTOWER_URL }}/v1/update"
+        run: |
+          curl --fail --silent --show-error --max-time 300 -H "Authorization: Bearer ${{ secrets.WATCHTOWER_HTTP_API_TOKEN }}" "${{ secrets.WATCHTOWER_URL }}/v1/update"
