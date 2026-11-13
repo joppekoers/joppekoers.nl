@@ -15,3 +15,5 @@ export type SyncCdnResult = {
 export type ApiRoutes = {
 	'/projects-list': ProjectListItem[]
 }
+
+export type ImageFormat = 'avif' | 'webp' | 'jpg'

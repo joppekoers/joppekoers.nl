@@ -6,7 +6,7 @@
 	export let project: Project
 	export let priority = false
 
-	import { imageUrl, type Project } from '$root/server/cms'
+	import { bestFormat, imageUrl, type Project } from '$root/server/cms'
 
 	let containerWidth = 0
 	let requestedWidth = largestRequestedWidth.get(project.header.url) ?? 0
@@ -14,14 +14,20 @@
 		requestedWidth = containerWidth
 		largestRequestedWidth.set(project.header.url, requestedWidth)
 	}
-	$: src = requestedWidth ? imageUrl(project.header, requestedWidth) : undefined
+	$: avifUrl = requestedWidth ? imageUrl(project.header, requestedWidth, 'avif') : undefined
+	$: webpUrl = requestedWidth ? imageUrl(project.header, requestedWidth, 'webp') : undefined
+	$: jpgUrl = requestedWidth ? imageUrl(project.header, requestedWidth, 'jpg') : undefined
 
 	async function openPhotoSwhipe() {
-		const [{ default: PhotoSwipe }] = await Promise.all([import('photoswipe'), import('photoswipe/style.css')])
+		const [{ default: PhotoSwipe }, , format] = await Promise.all([
+			import('photoswipe'),
+			import('photoswipe/style.css'),
+			bestFormat(),
+		])
 		const gallery = new PhotoSwipe({
 			gallery: '#pswp-gallery-id',
 			dataSource: project.content.map(image => ({
-				src: imageUrl(image, window.innerWidth),
+				src: imageUrl(image, window.innerWidth, format),
 				alt: image.alt,
 				width: image.width,
 				height: image.height,
@@ -38,15 +44,19 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div bind:clientWidth={containerWidth} on:keydown={() => null} on:click={() => openPhotoSwhipe()}>
-	<img
-		loading={priority ? 'eager' : 'lazy'}
-		fetchpriority={priority ? 'high' : 'auto'}
-		decoding="auto"
-		class="h-auto w-full rounded-lg project"
-		{src}
-		width={project.header.width}
-		height={project.header.height}
-		alt={project.header.alt} />
+	<picture>
+		<source type="image/avif" srcset={avifUrl} />
+		<source type="image/webp" srcset={webpUrl} />
+		<img
+			loading={priority ? 'eager' : 'lazy'}
+			fetchpriority={priority ? 'high' : 'auto'}
+			decoding="auto"
+			class="h-auto w-full rounded-lg project"
+			src={jpgUrl}
+			width={project.header.width}
+			height={project.header.height}
+			alt={project.header.alt} />
+	</picture>
 </div>
 
 <style>

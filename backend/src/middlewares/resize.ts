@@ -4,6 +4,7 @@ import fs from 'fs'
 import { IPX } from 'ipx'
 import { hash } from 'ohash'
 import path from 'path'
+import type { ImageFormat } from '../../../shared/api'
 import { cacheControl } from '../cacheControl'
 import { env } from '../env'
 import { exceptionAsValue, fsExists } from '../util'
@@ -25,16 +26,20 @@ function sendImageError(err: Error, res: Response) {
 	res.status(status).send(err.message)
 }
 
-const allowedParams = new Set(['v', 'width', 'height'])
+const allowedParams = new Set(['v', 'width', 'height', 'format'])
 const positiveInt = /^[1-9]\d{0,4}$/
+const mimeTypes = { avif: 'image/avif', webp: 'image/webp', jpg: 'image/jpeg' } as const satisfies Record<
+	ImageFormat,
+	string
+>
 
 function parseImageQuery(query: Request['query']) {
 	const unknown = Object.keys(query).filter(key => !allowedParams.has(key))
 	if (unknown.length > 0) {
-		return new Error(`Unknown query parameter: ${unknown.join(', ')}. Use width or height.`)
+		return new Error(`Unknown query parameter: ${unknown.join(', ')}. Use width, height or format.`)
 	}
-	const { v, width, height } = query
-	if ([v, width, height].some(value => value !== undefined && typeof value !== 'string')) {
+	const { v, width, height, format = 'webp' } = query
+	if ([v, width, height, format].some(value => value !== undefined && typeof value !== 'string')) {
 		return new Error('Query parameters must be given once')
 	}
 	if (width !== undefined && height !== undefined) {
@@ -44,10 +49,14 @@ function parseImageQuery(query: Request['query']) {
 	if (size !== undefined && !positiveInt.test(size)) {
 		return new Error('width and height must be positive integers')
 	}
+	if (!Object.hasOwn(mimeTypes, format as string)) {
+		return new Error(`format must be one of: ${Object.keys(mimeTypes).join(', ')}`)
+	}
 	return {
 		version: v as string | undefined,
+		mimeType: mimeTypes[format as ImageFormat],
 		modifiers: {
-			f: 'webp',
+			f: format as ImageFormat,
 			...(width !== undefined ? { w: size } : {}),
 			...(height !== undefined ? { h: size } : {}),
 		},
@@ -67,7 +76,7 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 		res.status(400).send(query.message)
 		return
 	}
-	const { version, modifiers } = query
+	const { version, mimeType, modifiers } = query
 	const successCacheControl = version ? cacheControl.immutable : cacheControl.unversionedImage
 	const imageHash = hash({ id: req.path, version, ...modifiers })
 	const imgPath = path.join(env.cacheDir, `${imageHash}.raw`)
@@ -119,12 +128,12 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 		res.sendStatus(304)
 		return
 	}
-	res.set('Content-Type', `image/${data.format}`)
+	res.set('Content-Type', mimeType)
 	res.send(data.data)
 	logReq(false, start, req.path, req.query)
 
 	void Promise.all([
-		fs.promises.writeFile(typePath, `image/${data.format}`, 'utf-8'),
+		fs.promises.writeFile(typePath, mimeType, 'utf-8'),
 		fs.promises.writeFile(etagPath, etagV, 'utf-8'),
 		fs.promises.writeFile(imgPath, data.data),
 	]).catch(error => {

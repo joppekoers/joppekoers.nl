@@ -1,5 +1,5 @@
 import { env } from '$root/env'
-import type { ApiRoutes } from '@shared/api'
+import type { ApiRoutes, ImageFormat } from '@shared/api'
 
 export type ImageSource = {
 	alt: string
@@ -17,11 +17,41 @@ function bucket(px: number) {
 	return px < 200 ? Math.ceil(px / 50) * 50 : Math.ceil(px / 200) * 200
 }
 
-export function imageUrl(image: ImageSource, cssWidth: number) {
+export function imageUrl(image: ImageSource, cssWidth: number, format: ImageFormat) {
 	const width = Math.min(Math.max(bucket(cssWidth * Math.min(window.devicePixelRatio, 2)), 50), image.width)
 	const url = new URL(image.url)
 	url.searchParams.set('width', width.toString())
+	url.searchParams.set('format', format)
 	return url.toString()
+}
+
+const avifProbe =
+	'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A='
+const webpProbe = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA=='
+
+function canDecode(src: string) {
+	return new Promise<boolean>(resolve => {
+		const img = new Image()
+		img.onload = () => resolve(img.width > 0)
+		img.onerror = () => resolve(false)
+		img.src = src
+	})
+}
+
+async function detectBestFormat() {
+	if (await canDecode(avifProbe)) {
+		return 'avif' as const
+	}
+	if (await canDecode(webpProbe)) {
+		return 'webp' as const
+	}
+	return 'jpg' as const
+}
+
+let bestFormatPromise: Promise<ImageFormat> | undefined
+export function bestFormat() {
+	bestFormatPromise ??= detectBestFormat()
+	return bestFormatPromise
 }
 
 async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit) {
