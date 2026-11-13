@@ -3,13 +3,16 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[letterpaper,top=0.75in,bottom=0.5in,left=0.75in,right=0.6in]{geometry}
-\usepackage[scaled=0.92]{helvet}
+\usepackage[scaled=0.9]{helvet}
 \renewcommand{\familydefault}{\sfdefault}
 \usepackage{xcolor}
 \usepackage{paracol}
 \usepackage{graphicx}
 \usepackage{enumitem}
+\usepackage[normalem]{ulem}
 \usepackage[hidelinks]{hyperref}
+\renewcommand{\underline}{\uline}
+\setlength{\ULdepth}{1.6pt}
 
 \definecolor{accent}{HTML}{A61C00}
 \pagestyle{empty}
@@ -25,8 +28,8 @@
 \newcommand{\sub}[1]{\par\textbf{#1}\par}
 \newcommand{\job}[4]{%
   \vspace{1em}{\mont{\bfseries\large #1}}\par\vspace{0.3em}
-  {\color{accent}\mont{\MakeUppercase{#2}}}\par
-  {\color{accent}\mont{\MakeUppercase{#3}}}\par
+  {\small\color{accent}\mont{\MakeUppercase{#2}}}\par
+  {\small\color{accent}\mont{\MakeUppercase{#3}}}\par
   #4}
 \newenvironment{dashes}{\begin{itemize}[label=-,leftmargin=*,labelsep=0.3em,itemsep=0.05em,parsep=0pt,topsep=0.2em]}{\end{itemize}}
 
@@ -35,12 +38,12 @@
 \columnratio{0.48}
 \begin{paracol}{2}
 
-I'm a software engineer with 5 years of freelance and employment experience. Mostly focussed on backend integrations for web-based apps in both cloud and self hosted environments.
+I'm a software engineer with \the\numexpr\year-2020\relax{} years of freelance and employment experience. Mostly focussed on backend integrations for web-based apps in both cloud and self hosted environments.
 
 \section{Contact}
 Joppe Koers\\
 \href{mailto:joppe@joppekoers.nl}{joppe@joppekoers.nl}\\
-\href{https://github.com/SirMorfield}{\underline{github.com/SirMorfield}}\\
+\href{https://github.com/joppekoers}{\underline{github.com/joppekoers}}\\
 \href{https://joppekoers.nl}{\underline{joppekoers.nl}}\\
 Amsterdam, The Netherlands
 
@@ -67,9 +70,9 @@ Woodworking, painting and restoration
 
 \section{Education}
 2020 - 2023\par
-\hspace*{2.5em}\parbox[t]{0.85\linewidth}{\raggedright Software engineering student at\\Codam Coding College - the international 42 network}\par
+{\leftskip=2.5em Software engineering student at\\Codam Coding College - the international 42 network\par}\vspace{0.3em}
 2013 - 2019\par
-\hspace*{2.5em}\parbox[t]{0.85\linewidth}{\raggedright VWO NG/NT diploma at\\Metis Montessori Lyceum}
+{\leftskip=2.5em VWO NG/NT diploma at\\Metis Montessori Lyceum\par}
 
 \section{Languages}
 \begin{tabular}{@{}ll@{}}
@@ -78,15 +81,15 @@ English & Bilingual proficiency
 \end{tabular}
 
 \section{Reference}
-\href{https://github.com/SirMorfield}{\includegraphics[width=1.25in]{qr-github.png}}\hspace{0.1in}%
+\href{https://github.com/joppekoers}{\includegraphics[width=1.25in]{qr-github.png}}\hspace{0.1in}%
 \includegraphics[width=1.25in]{qr-linkedin.png}
 
 \switchcolumn
 
 {\color{accent}\mont{\bfseries\fontsize{38}{42}\selectfont \mbox{Joppe Koers}}}\par
-\vspace{-0.5em}
+\vspace{-0.2em}
 \section{Experience}
-\vspace{-1.2em}
+\vspace{-0.7em}
 
 \job{Fullstack, on-call software engineer}{Celebratix - Secure digital ticketing platform}{November 2023 - Present}{%
 \begin{dashes}

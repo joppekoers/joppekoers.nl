@@ -10,7 +10,7 @@
 		{ label: 'Name', value: 'Joppe Koers' },
 		{ label: 'Email', value: 'joppe@joppekoers.nl' },
 		{ label: 'LinkedIn', value: 'linkedin.com/in/joppekoers', link: 'https://www.linkedin.com/in/joppekoers/' },
-		{ label: 'GitHub', value: 'SirMorfield', link: 'https://github.com/SirMorfield' },
+		{ label: 'GitHub', value: 'joppekoers', link: 'https://github.com/joppekoers' },
 	]
 </script>
 
