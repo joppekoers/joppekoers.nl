@@ -56,10 +56,14 @@ export async function dirToProject(dir: string): Promise<Project> {
 	const imagePaths = paths.filter(file => file !== 'metadata.json' && !file.includes('ignore'))
 
 	const images = await Promise.all(
-		imagePaths.map(async (image: string) => ({
-			url: `/projects/${dir}/${image}`,
-			...(await getImageMetaData(path.join(env.projects, dir, image))),
-		})),
+		imagePaths.map(async (image: string) => {
+			const imagePath = path.join(env.projects, dir, image)
+			const { mtimeMs } = await fs.promises.stat(imagePath)
+			return {
+				url: `/projects/${dir}/${image}?v=${Math.floor(mtimeMs).toString(36)}`,
+				...(await getImageMetaData(imagePath)),
+			}
+		}),
 	)
 	const metadataPath = paths.find(file => file === 'metadata.json')
 	const metadata = metadataPath ? await readMetadata(path.join(env.projects, dir, metadataPath)) : {}

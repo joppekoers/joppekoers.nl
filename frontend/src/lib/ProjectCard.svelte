@@ -1,25 +1,31 @@
+<script lang="ts" module>
+	const largestRequestedWidth = new Map<string, number>()
+</script>
+
 <script lang="ts">
 	export let project: Project
+	export let priority = false
 
-	import 'photoswipe/style.css'
-	import PhotoSwipe from 'photoswipe'
-	import type { ImageSource, Project } from '$root/server/cms'
+	import { imageUrl, type Project } from '$root/server/cms'
 
-	function toDataSource({ srcset, alt, formats }: ImageSource) {
-		return {
-			srcset,
-			alt,
-			src: formats[0].src, // choosing a random start image, srcset will take care of the rest
-			width: formats[0].width,
-			height: formats[0].height,
-		}
+	let containerWidth = 0
+	let requestedWidth = largestRequestedWidth.get(project.header.url) ?? 0
+	$: if (containerWidth > requestedWidth) {
+		requestedWidth = containerWidth
+		largestRequestedWidth.set(project.header.url, requestedWidth)
 	}
+	$: src = requestedWidth ? imageUrl(project.header, requestedWidth) : undefined
 
-	function openPhotoSwhipe() {
+	async function openPhotoSwhipe() {
+		const [{ default: PhotoSwipe }] = await Promise.all([import('photoswipe'), import('photoswipe/style.css')])
 		const gallery = new PhotoSwipe({
 			gallery: '#pswp-gallery-id',
-			dataSource: project.content.map(toDataSource),
-			pswpModule: () => import('photoswipe'),
+			dataSource: project.content.map(image => ({
+				src: imageUrl(image, window.innerWidth),
+				alt: image.alt,
+				width: image.width,
+				height: image.height,
+			})),
 			loop: false,
 			bgOpacity: 0.9,
 			showAnimationDuration: 100,
@@ -30,18 +36,16 @@
 	}
 </script>
 
-<!-- TODO: sizes="25vw" is horrible -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div on:keydown={() => null} on:click={() => openPhotoSwhipe()}>
+<div bind:clientWidth={containerWidth} on:keydown={() => null} on:click={() => openPhotoSwhipe()}>
 	<img
-		loading="lazy"
+		loading={priority ? 'eager' : 'lazy'}
+		fetchpriority={priority ? 'high' : 'auto'}
 		decoding="auto"
 		class="h-auto w-full rounded-lg project"
-		sizes="25vw"
-		srcset={project.header.srcset}
-		src={project.header.formats[0].src}
-		width={project.header.formats[0].width}
-		height={project.header.formats[0].height}
+		{src}
+		width={project.header.width}
+		height={project.header.height}
 		alt={project.header.alt} />
 </div>
 

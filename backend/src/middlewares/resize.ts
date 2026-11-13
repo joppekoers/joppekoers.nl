@@ -4,7 +4,7 @@ import fs from 'fs'
 import { IPX } from 'ipx'
 import { hash } from 'ohash'
 import path from 'path'
-import { sendError } from '../app'
+import { cacheControl } from '../cacheControl'
 import { env } from '../env'
 import { exceptionAsValue, fsExists } from '../util'
 
@@ -15,12 +15,25 @@ function logReq(cache: boolean, start: [number, number], path: string, modifiers
 	const cacheStr = cache ? 'HIT ' : 'MISS'
 	console.log(now, time, cacheStr, path, modifiers)
 }
+
+function sendImageError(err: Error, res: Response) {
+	const status = 'statusCode' in err && typeof err.statusCode === 'number' ? err.statusCode : 500
+	if (status >= 500) {
+		console.error(err)
+	}
+	res.set('Cache-Control', status === 404 ? cacheControl.notFound : cacheControl.noStore)
+	res.status(status).send(err.message)
+}
+
 export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 	if (req.path === '/') {
+		res.set('Cache-Control', cacheControl.notFound)
 		res.sendStatus(404)
 		return
 	}
 	const start = process.hrtime()
+	const { v: version, ...modifiers } = req.query as Record<string, string>
+	const successCacheControl = version ? cacheControl.immutable : cacheControl.unversionedImage
 	const imageHash = hash({ id: req.path, ...req.query })
 	const imgPath = path.join(env.cacheDir, `${imageHash}.raw`)
 	const typePath = path.join(env.cacheDir, `${imageHash}.mime`)
@@ -31,58 +44,47 @@ export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 			fs.promises.readFile(typePath, 'utf-8').catch(e => e as Error),
 			fs.promises.readFile(etagPath, 'utf-8').catch(e => e as Error),
 		])
-		if (type instanceof Error || etag instanceof Error) {
-			return console.error('Could not read meta', (type ?? etag) as Error)
+		if (!(type instanceof Error) && !(etag instanceof Error)) {
+			res.set('Cache-Control', successCacheControl)
+			res.set('ETag', etag)
+			if (etag && req.header('if-none-match') === etag) {
+				return res.sendStatus(304)
+			}
+			res.set('Content-Type', type)
+
+			const stream = fs.createReadStream(imgPath)
+			stream.pipe(res)
+			stream.on('close', () => logReq(true, start, req.path, req.query))
+			return
 		}
-
-		res.set('ETag', etag)
-		if (etag && req.header('if-none-match') === etag) {
-			return res.sendStatus(304)
-		}
-
-		res.set('Cache-Control', `max-age=${env.maxAge}, public, s-maxage=${env.maxAge}`)
-
-		res.set('Content-Type', type)
-
-		const stream = fs.createReadStream(imgPath)
-		stream.pipe(res)
-		stream.on('close', () => logReq(true, start, req.path, req.query))
-		return
+		console.error('Could not read cached image meta, regenerating', type instanceof Error ? type : etag)
 	}
 
-	const img = exceptionAsValue(() => ipx(req.path, req.query))
+	const img = exceptionAsValue(() => ipx(req.path, modifiers))
 	if (img instanceof Error) {
-		return sendError(img, res)
+		return sendImageError(img, res)
 	}
 	const src = await exceptionAsValue(() => img.getSourceMeta())
 	if (src instanceof Error) {
-		return sendError(src, res)
+		return sendImageError(src, res)
 	}
 
-	// Caching headers
 	if (src.mtime) {
-		const ifModifiedSince = req.header('if-modified-since')
-		if (ifModifiedSince && new Date(ifModifiedSince) >= src.mtime) {
-			return res.sendStatus(304)
-		}
-		res.set('Last-Modified', `${src.mtime}`)
+		res.set('Last-Modified', src.mtime.toUTCString())
 	}
 
-	const maxAge = src.maxAge ?? env.maxAge
-	res.set('Cache-Control', `max-age=${maxAge}, public, s-maxage=${maxAge}`)
-
-	// Get converted image
 	const data = await exceptionAsValue(() => img.process())
 	if (data instanceof Error) {
-		return sendError(data, res)
+		return sendImageError(data, res)
 	}
 	const etagV = etag(data.data)
-	if (etagV && req.header('if-none-match') === etagV) {
+	res.set('Cache-Control', successCacheControl)
+	res.set('ETag', etagV)
+	if (req.header('if-none-match') === etagV) {
 		res.sendStatus(304)
 		return
 	}
 	res.set('Content-Type', `image/${data.format}`)
-	res.set('ETag', etagV)
 	res.send(data.data)
 	logReq(false, start, req.path, req.query)
 

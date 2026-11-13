@@ -1,12 +1,29 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
+import { minify } from 'html-minifier-terser'
 import { fileURLToPath } from 'url'
-import { type UserConfig } from 'vite'
+import { type Plugin, type UserConfig } from 'vite'
 
 const backend = `http://127.0.0.1:${process.env.BACKEND_PORT || 8080}`
 
+const minifyHtml: Plugin = {
+	name: 'minify-html',
+	apply: 'build',
+	transformIndexHtml: {
+		order: 'post',
+		handler: html =>
+			minify(html, {
+				collapseWhitespace: true,
+				removeComments: true,
+				collapseBooleanAttributes: true,
+				removeRedundantAttributes: true,
+				minifyCSS: true,
+			}),
+	},
+}
+
 const config: UserConfig = {
-	plugins: [tailwindcss(), svelte()],
+	plugins: [tailwindcss(), svelte(), minifyHtml],
 	publicDir: 'static',
 	resolve: {
 		alias: {

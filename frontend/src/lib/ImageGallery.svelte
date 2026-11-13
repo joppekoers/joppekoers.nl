@@ -20,7 +20,9 @@
 
 	const columnCount = $derived(Math.min(Math.floor(galleryWidth / maxColumnWidth) || 1, maxColumnCount))
 	const columns = $derived(
-		Array.from({ length: columnCount }, (_, column) => items.filter((_, i) => i % columnCount === column)),
+		galleryWidth
+			? Array.from({ length: columnCount }, (_, column) => items.filter((_, i) => i % columnCount === column))
+			: [],
 	)
 </script>
 

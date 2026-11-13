@@ -1,16 +1,11 @@
 import { env } from '$root/env'
 import type { ApiRoutes } from '@shared/api'
 
-type Image = {
-	format: 'heic' | 'heif' | 'avif' | 'webp' | 'jpeg' | 'jpg' | 'png' | 'gif' | 'tiff'
-	height: number
-	width: number
-	src: string
-}
 export type ImageSource = {
 	alt: string
-	srcset: string
-	formats: Image[]
+	url: string
+	width: number
+	height: number
 }
 export type Project = {
 	id: number
@@ -18,29 +13,16 @@ export type Project = {
 	content: ImageSource[]
 }
 
-// TODO: this is incorrect for multiple image formats, but since webp is first in the list, it will work on any browser
-function imageSetToSrcSet(images: Image[]): string {
-	return images.map(({ src, width }) => `${src} ${width}w`).join(', ')
+function bucket(px: number): number {
+	return px < 200 ? Math.ceil(px / 50) * 50 : Math.ceil(px / 200) * 200
 }
 
-function generateFormatQueries(url: string, w: number, h: number): Image[] {
-	// avif is not yet supported by sharp
-	const types: Image['format'][] = ['webp' /* 'heif', 'avif'*/]
-	const sizes = [w, 1920, 720, 480, 300].filter(size => size <= w)
-	const images: Image[] = []
-	for (const type of types) {
-		for (const size of sizes) {
-			const height = Math.round((size / w) * h)
-			const image: Image = {
-				format: type,
-				height,
-				width: size,
-				src: `${url}?format=${type}&resize=${size}x${height}`,
-			}
-			images.push(image)
-		}
-	}
-	return images
+export function imageUrl(image: ImageSource, cssWidth: number): string {
+	const width = Math.min(Math.max(bucket(cssWidth * Math.min(window.devicePixelRatio, 2)), 50), image.width)
+	const url = new URL(image.url)
+	url.searchParams.set('format', 'webp')
+	url.searchParams.set('resize', `${width}x${Math.round((width / image.width) * image.height)}`)
+	return url.toString()
 }
 
 async function fetch2<T>(input: URL | RequestInfo, init?: RequestInit): Promise<Error | T> {
@@ -68,29 +50,12 @@ export async function getProjects(): Promise<Project[]> {
 		return []
 	}
 	return data.map((data, i) => {
-		const header = data.images.at(0)
-		const headerQueries = generateFormatQueries(
-			new URL(header.url, env.cmsUrl).toString(),
-			header.width,
-			header.height,
-		)
-		const contentQueries = data.images.map(img => {
-			const url = new URL(img.url, env.cmsUrl).toString()
-			return generateFormatQueries(url, img.width, img.height)
-		})
-
-		return {
-			id: i,
-			header: {
-				alt: header.url,
-				srcset: imageSetToSrcSet(headerQueries),
-				formats: headerQueries,
-			},
-			content: contentQueries.map((queries, i) => ({
-				alt: data.images[i].url,
-				srcset: imageSetToSrcSet(queries),
-				formats: queries,
-			})),
-		}
+		const content = data.images.map(img => ({
+			alt: img.url,
+			url: new URL(img.url, env.cmsUrl).toString(),
+			width: img.width,
+			height: img.height,
+		}))
+		return { id: i, header: content[0], content }
 	})
 }

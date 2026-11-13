@@ -8,7 +8,6 @@ const Env = z.object({
 	mediaDir: z.string().nonempty(),
 	uploadsDir: z.string().nonempty(),
 	frontendDir: z.string().nonempty(),
-	maxAge: z.number().min(0),
 })
 export type Env = z.infer<typeof Env>
 
@@ -22,7 +21,6 @@ export const env = {
 	mediaDir: `${__dirname}/../media`,
 	uploadsDir: `${__dirname}/../uploads`,
 	frontendDir: `${__dirname}/../../frontend/dist`,
-	maxAge: 1000 * 60 * 60 * 24 * 30,
 } as const satisfies Env
 
 Env.parse(env)

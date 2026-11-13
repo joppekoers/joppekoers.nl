@@ -22,7 +22,7 @@
 						<a href="/contact" class="hover:underline">/contact</a> page.
 					</Note>
 				{:else}
-					<ProjectCard project={entry} />
+					<ProjectCard project={entry} priority={entry === data.projects[0]} />
 				{/if}
 			{/snippet}
 		</ImageGallery>
