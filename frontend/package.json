@@ -10,9 +10,6 @@
 		"lint:check": "prettier --check . && DEBUG=eslint:cli-engine eslint --max-warnings 0 --cache --cache-location node_modules/.eslintcache . && knip",
 		"lint:fix": "prettier --write . && DEBUG=eslint:cli-engine eslint --cache --cache-location node_modules/.eslintcache --fix ."
 	},
-	"dependencies": {
-		"photoswipe": "^5.4.4"
-	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",

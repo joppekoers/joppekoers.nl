@@ -7,6 +7,7 @@ export const cacheControl = {
 	html: `public, max-age=0, s-maxage=10, stale-while-revalidate=${day}`,
 	projectsList: 'public, max-age=0, s-maxage=60, stale-while-revalidate=600',
 	static: `public, max-age=${7 * day}`,
+	cv: 'public, max-age=60',
 	revalidate: 'no-cache',
 	notFound: 'public, max-age=0, s-maxage=60',
 	noStore: 'no-store',

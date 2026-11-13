@@ -6,7 +6,8 @@
 	export let project: Project
 	export let priority = false
 
-	import { bestFormat, imageUrl, type Project } from '$root/server/cms'
+	import { mount, unmount } from 'svelte'
+	import { imageUrl, type Project } from '$root/server/cms'
 
 	let containerWidth = 0
 	let requestedWidth = largestRequestedWidth.get(project.header.url) ?? 0
@@ -18,36 +19,28 @@
 	$: webpUrl = requestedWidth ? imageUrl(project.header, requestedWidth, 'webp') : undefined
 	$: jpgUrl = requestedWidth ? imageUrl(project.header, requestedWidth, 'jpg') : undefined
 
-	async function openPhotoSwhipe() {
-		const [{ default: PhotoSwipe }, , format] = await Promise.all([
-			import('photoswipe'),
-			import('photoswipe/style.css'),
-			bestFormat(),
-		])
-		const gallery = new PhotoSwipe({
-			gallery: '#pswp-gallery-id',
-			dataSource: project.content.map(image => ({
-				src: imageUrl(image, window.innerWidth, format),
-				alt: image.alt,
-				width: image.width,
-				height: image.height,
-			})),
-			loop: false,
-			bgOpacity: 0.9,
-			showAnimationDuration: 100,
-			hideAnimationDuration: 100,
-			pinchToClose: false,
+	let thumbnail: HTMLImageElement | undefined
+
+	async function openViewer() {
+		const { default: Lightbox } = await import('./Lightbox.svelte')
+		const viewer = mount(Lightbox, {
+			target: document.body,
+			props: {
+				images: project.content,
+				thumbnailSrc: thumbnail?.currentSrc || undefined,
+				onclose: () => unmount(viewer),
+			},
 		})
-		gallery.init()
 	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div bind:clientWidth={containerWidth} on:keydown={() => null} on:click={() => openPhotoSwhipe()}>
+<div bind:clientWidth={containerWidth} on:keydown={() => null} on:click={() => openViewer()}>
 	<picture>
 		<source type="image/avif" srcset={avifUrl} />
 		<source type="image/webp" srcset={webpUrl} />
 		<img
+			bind:this={thumbnail}
 			loading={priority ? 'eager' : 'lazy'}
 			fetchpriority={priority ? 'high' : 'auto'}
 			decoding="auto"

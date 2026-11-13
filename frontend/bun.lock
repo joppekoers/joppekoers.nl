@@ -4,9 +4,6 @@
   "workspaces": {
     "": {
       "name": "frontend",
-      "dependencies": {
-        "photoswipe": "^5.4.4",
-      },
       "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
@@ -468,8 +465,6 @@
     "path-exists": ["path-exists@4.0.0", "", {}, ""],
 
     "path-key": ["path-key@3.1.1", "", {}, ""],
-
-    "photoswipe": ["photoswipe@5.4.4", "", {}, "sha512-WNFHoKrkZNnvFFhbHL93WDkW3ifwVOXSW3w1UuZZelSmgXpIGiZSNlZJq37rR8YejqME2rHs9EhH9ZvlvFH2NA=="],
 
     "picocolors": ["picocolors@1.0.0", "", {}, ""],
 

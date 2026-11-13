@@ -1,0 +1,131 @@
+\documentclass[10pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper,top=0.75in,bottom=0.5in,left=0.75in,right=0.6in]{geometry}
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{xcolor}
+\usepackage{paracol}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{A61C00}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{0.25in}
+\linespread{1.0}
+\raggedright
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+\newcommand{\mont}[1]{{\fontfamily{Montserrat-TLF}\selectfont #1}}
+\renewcommand{\section}[1]{\vspace{1.1em}{\color{accent}\mont{\bfseries\Large\MakeUppercase{#1}}}\par\vspace{0.3em}}
+\newcommand{\sub}[1]{\par\textbf{#1}\par}
+\newcommand{\job}[4]{%
+  \vspace{1em}{\mont{\bfseries\large #1}}\par\vspace{0.3em}
+  {\color{accent}\mont{\MakeUppercase{#2}}}\par
+  {\color{accent}\mont{\MakeUppercase{#3}}}\par
+  #4}
+\newenvironment{dashes}{\begin{itemize}[label=-,leftmargin=*,labelsep=0.3em,itemsep=0.05em,parsep=0pt,topsep=0.2em]}{\end{itemize}}
+
+\begin{document}
+\raggedright
+\columnratio{0.48}
+\begin{paracol}{2}
+
+I'm a software engineer with 5 years of freelance and employment experience. Mostly focussed on backend integrations for web-based apps in both cloud and self hosted environments.
+
+\section{Contact}
+Joppe Koers\\
+\href{mailto:joppe@joppekoers.nl}{joppe@joppekoers.nl}\\
+\href{https://github.com/SirMorfield}{\underline{github.com/SirMorfield}}\\
+\href{https://joppekoers.nl}{\underline{joppekoers.nl}}\\
+Amsterdam, The Netherlands
+
+\section{Skills}
+\sub{Languages}
+TypeScript, JavaScript\\
+C\#, .NET/dotnet core framework\\
+C, C++\\
+SQL, Rust, Go, Python, x86 ASM, CSS, HTML
+\sub{Runtimes/frameworks/SaaS solutions}
+React, React-native, Svelte, Svelte-kit, Next.js, Tailwind\\
+Node.js, Bun, expo, Vite, Cypress, Playwright, Express\\
+Docker, docker compose, Kubernetes (k8s), kustomize\\
+DevOps \& CI/CD pipelines in (self-hosted) GitHub actions\\
+bash/sh/zsh, GIT, vim, ssh, etc.\\
+Grafana, Elastic, Loki, Metabase, DataDog, Stripe, Stape, Google Tag manager, GitHub, GCP, Digital Ocean
+\sub{Other}
+Public speaking, design, communicating with clients\\
+Teaching and giving trainings/presentations\\
+Integrated circuits, Raspberry Pi, ESP32, Arduino\\
+Linux server and self-hosted hardware management\\
+Photoshop\\
+Woodworking, painting and restoration
+
+\section{Education}
+2020 - 2023\par
+\hspace*{2.5em}\parbox[t]{0.85\linewidth}{\raggedright Software engineering student at\\Codam Coding College - the international 42 network}\par
+2013 - 2019\par
+\hspace*{2.5em}\parbox[t]{0.85\linewidth}{\raggedright VWO NG/NT diploma at\\Metis Montessori Lyceum}
+
+\section{Languages}
+\begin{tabular}{@{}ll@{}}
+Dutch & Native proficiency\\
+English & Bilingual proficiency
+\end{tabular}
+
+\section{Reference}
+\href{https://github.com/SirMorfield}{\includegraphics[width=1.25in]{qr-github.png}}\hspace{0.1in}%
+\includegraphics[width=1.25in]{qr-linkedin.png}
+
+\switchcolumn
+
+{\color{accent}\mont{\bfseries\fontsize{38}{42}\selectfont \mbox{Joppe Koers}}}\par
+\vspace{-0.5em}
+\section{Experience}
+\vspace{-1.2em}
+
+\job{Fullstack, on-call software engineer}{Celebratix - Secure digital ticketing platform}{November 2023 - Present}{%
+\begin{dashes}
+\item Migrating entire stack from Azure to k8s on DigitalOcean
+\item Building the main api layer in C\# (.NET core framework)
+\item Refactoring/securing Stripe-based payment flow
+\item Onboarding new employees
+\item Building b2c and b2b apps in React native, Expo, Svelte, Next
+\item Working together closely with the product owner and designers
+\item CI/CD GitHub testing and deployment to k8s clusters
+\item Integrating with Metabase, Elastic, Stape, Google tag manager, Solana, Cloudflare, Stripe terminals, S3
+\item Integrate event tickets with NFC with the Apple Wallet
+\end{dashes}}
+
+\job{Software engineer}{Q42 - Philips Hue team}{October 2022 - June 2023}{%
+\begin{dashes}
+\item Building infrastructure for the Philips Hue platform, with TS, React, GRPC, GCP and Go
+\item Extending the signup flow to comply with GDPR
+\item Implementing a new microservice for b2b2c communication using custom email templating engine
+\item Updating the test suite and pipelines from JS to TS
+\end{dashes}}
+
+\job{Education Assistant}{Codam Coding College, 42 Network}{January 2022 - July 2022}{%
+\begin{dashes}
+\item Organising Spark Sessions, where advanced students mentor new students on their projects.
+\item Creating a website that helps students find assignment partners\\
+  \hspace*{0.3em}Currently hosting 7200 sessions per month across 43 countries
+\item Creating a bot that ensures high quality student assignments and prevents cheating
+\item Representing the school at national education fairs and other promotional events
+\item Coaching candidate students during and after their selection period
+\end{dashes}}
+
+\job{Owner of joppekoers.nl freelance}{joppekoers.nl}{August 2018 - Present}{%
+\begin{dashes}
+\item Fully integrated customisable digital video doorbell systems
+\item Customer communication
+\item Design and construction
+\item Installation and maintenance
+\end{dashes}}
+
+\end{paracol}
+\end{document}

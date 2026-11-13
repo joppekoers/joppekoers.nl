@@ -13,7 +13,13 @@ async function sizeOf(path: string) {
 	if (!dimensions.width || !dimensions.height || !dimensions.type) {
 		return new Error(`No dimensions or type: ${JSON.stringify(dimensions)}`)
 	}
-	return { width: dimensions.width, height: dimensions.height, type: dimensions.type }
+	// EXIF orientations 5-8 store the image sideways; the resizer rotates it upright.
+	const sideways = (dimensions.orientation ?? 1) >= 5
+	return {
+		width: sideways ? dimensions.height : dimensions.width,
+		height: sideways ? dimensions.width : dimensions.height,
+		type: dimensions.type,
+	}
 }
 
 import type { ProjectListItem } from '../../shared/api'

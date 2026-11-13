@@ -55,10 +55,12 @@ app.use(
 	}),
 )
 
+const cvFile = 'CV Joppe Koers.pdf'
 app.use(
 	'/media',
 	express.static(env.mediaDir, {
-		setHeaders: res => res.set('Cache-Control', cacheControl.revalidate),
+		setHeaders: (res, filePath) =>
+			res.set('Cache-Control', path.basename(filePath) === cvFile ? cacheControl.cv : cacheControl.revalidate),
 	}),
 )
 app.use('/drop', (_, res, next) => {
@@ -67,8 +69,8 @@ app.use('/drop', (_, res, next) => {
 })
 app.use(drop)
 app.get('/cv', (_, res) => {
-	res.set('Cache-Control', cacheControl.revalidate)
-	res.redirect(302, '/media/CV Joppe Koers.pdf')
+	res.set('Cache-Control', cacheControl.cv)
+	res.redirect(302, `/media/${cvFile}`)
 })
 
 // Apple Pay domain verification for Adyen, see

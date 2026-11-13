@@ -9,7 +9,8 @@ The backend sets every TTL via `Cache-Control` in `backend/src/cacheControl.ts`.
 | `/projects-list` | revalidate | 60s + stale-while-revalidate |
 | `/projects/*?v=<mtime>` | 1 year | 1 year |
 | `frontend/static/*` | 1 week | 1 week |
-| `/media/*`, `/cv` | revalidate | revalidate |
+| `/cv`, `/media/CV Joppe Koers.pdf` | 60s | 60s |
+| `/media/*` | revalidate | revalidate |
 | `/drop/*` | never | never |
 | 404 | revalidate | 60s |
 | 400 / 5xx | never | never |
