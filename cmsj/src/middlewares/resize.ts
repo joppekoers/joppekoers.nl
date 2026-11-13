@@ -15,7 +15,6 @@ function logReq(cache: boolean, start: [number, number], path: string, modifiers
 	const cacheStr = cache ? 'HIT ' : 'MISS'
 	console.log(now, time, cacheStr, path, modifiers)
 }
-// inspired by https://github.com/strapi-community/strapi-plugin-local-image-sharp
 export async function resizeImage(ipx: IPX, req: Request, res: Response) {
 	if (req.path === '/') {
 		res.sendStatus(404)

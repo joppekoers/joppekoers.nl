@@ -16,7 +16,7 @@ const port = Number(process.env['PORT']) || 8080
 export const env = {
 	dev,
 	port,
-	cmsUrl: dev ? `http://127.0.0.1:${port}` : 'https://cms.joppekoers.nl',
+	cmsUrl: process.env['CMS_URL'] || (dev ? `http://127.0.0.1:${port}` : 'https://cms.joppekoers.nl'),
 	projects: `${__dirname}/../projects`,
 	cacheDir: `${__dirname}/../projects/.cache`,
 	mediaDir: `${__dirname}/../media`,

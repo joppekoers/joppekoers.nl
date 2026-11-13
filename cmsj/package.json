@@ -4,9 +4,9 @@
 	"description": "",
 	"main": "build/app.js",
 	"scripts": {
-		"dev": "NODE_ENV=development ts-node-dev --quiet --clear --transpile-only --rs --respawn  src/app.ts",
+		"dev": "NODE_ENV=development bun --watch src/app.ts",
 		"build": "tsc",
-		"start": "node build/app.js",
+		"start": "bun build/app.js",
 		"lint:check": "DEBUG=eslint:cli-engine eslint --cache --cache-location node_modules/.eslintcache .",
 		"lint:fix": "DEBUG=eslint:cli-engine eslint --cache --cache-location node_modules/.eslintcache --fix ."
 	},
@@ -34,6 +34,6 @@
 		"typescript": "^5.0.4"
 	},
 	"engines": {
-		"node": ">=18.0.0"
+		"bun": ">=1.4.0"
 	}
 }

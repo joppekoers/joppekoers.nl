@@ -1,77 +1,75 @@
-# =============== DEPS ==============
-FROM node:18-alpine as dependencies
-WORKDIR /app
-
-COPY shared ./shared
+# syntax=docker/dockerfile:1
 
 # ==== BUILDER PROJECT GENERATOR ====
-FROM dependencies as builder-project-generator
+FROM oven/bun:alpine AS builder-project-generator
 ENV NODE_ENV=production
 WORKDIR /app
 
-RUN apk --update --no-cache add imagemagick exiftool
+RUN apk --no-cache add imagemagick exiftool
 
-COPY projectGenerator/package*.json ./projectGenerator/
-RUN cd projectGenerator && npm ci
+COPY shared ./shared
+COPY projectGenerator/package.json projectGenerator/bun.lock ./projectGenerator/
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+	cd projectGenerator && bun install --frozen-lockfile
 COPY projectGenerator ./projectGenerator
-RUN cd projectGenerator && npm run lint:check
-RUN cd projectGenerator && npm run build
+RUN cd projectGenerator && bun run lint:check && bun run build
+
+# ======== FRONTEND DEPS ============
+FROM oven/bun:alpine AS deps-frontend
+WORKDIR /app
+COPY frontend/package.json frontend/bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+	bun install --frozen-lockfile --production
 
 # ======== BUILDER FRONTEND =========
-FROM dependencies as builder-frontend
+FROM oven/bun:alpine AS builder-frontend
 WORKDIR /app
-
-COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm install
-COPY frontend ./frontend
+COPY frontend/package.json frontend/bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+	bun install --frozen-lockfile
+COPY frontend ./
 
 ENV NODE_ENV=production
-RUN cd frontend && npm run check
-RUN cd frontend && npm run lint:check
-RUN cd frontend && npm run build
+RUN bun run check && bun run lint:check && bun run build
 
-RUN cd frontend && npm prune --omit=dev
+# =========== CMS DEPS ==============
+FROM oven/bun:alpine AS deps-cms
+WORKDIR /app
+COPY cmsj/package.json cmsj/bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+	bun install --frozen-lockfile --production
 
 # ========== BUILDER CMS ============
-FROM node:18-alpine as builder-cms
-WORKDIR /app/cmsj
-COPY cmsj/package.json cmsj/package-lock.json ./
-RUN npm ci
+FROM oven/bun:alpine AS builder-cms
+WORKDIR /app
+COPY cmsj/package.json cmsj/bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+	bun install --frozen-lockfile
+COPY cmsj ./
 
 ENV NODE_ENV=production
-COPY cmsj .
-RUN npm run build
-RUN npm prune --omit=dev
+RUN bun run build
 
 # =============== CMS ===============
-FROM node:18-alpine as cms
-RUN apk --no-cache add libpng librsvg libgsf giflib libjpeg-turbo musl vips-dev fftw-dev build-base gcc autoconf automake zlib-dev libpng-dev
+FROM oven/bun:alpine AS cms
 ENV NODE_ENV=production
 WORKDIR /app
-COPY --from=builder-cms /app/cmsj/build ./build
-COPY --from=builder-cms /app/cmsj/node_modules ./node_modules
-COPY --from=builder-cms /app/cmsj/package.json ./package.json
-CMD node ./build/app.js
-
+COPY --from=deps-cms /app/node_modules ./node_modules
+COPY --from=builder-cms /app/package.json ./package.json
+COPY --from=builder-cms /app/build ./build
+CMD ["bun", "./build/app.js"]
 
 # ======== PROJECT GENERATOR ========
-FROM builder-project-generator as project-generator
-ENV NODE_ENV=production
-WORKDIR /app
-
-CMD cd projectGenerator && npm run start
+FROM builder-project-generator AS project-generator
+WORKDIR /app/projectGenerator
+CMD ["bun", "run", "start"]
 
 # ============= FRONTEND =============
-FROM gcr.io/distroless/nodejs:18 as frontend
-# FROM node:18-alpine as frontend
-
+FROM oven/bun:distroless AS frontend
 ENV NODE_ENV=production
-WORKDIR /app
 ENV PORT=8080
-
-COPY --from=builder-frontend /app/frontend/build ./build
-COPY --from=builder-frontend /app/frontend/node_modules ./node_modules
-COPY --from=builder-frontend /app/frontend/package.json ./package.json
-
-# ENTRYPOINT [ "node" ]
-CMD [ "./build/index.js" ]
+WORKDIR /app
+COPY --from=deps-frontend /app/node_modules ./node_modules
+COPY --from=builder-frontend /app/package.json ./package.json
+COPY --from=builder-frontend /app/build ./build
+CMD ["./build/index.js"]
