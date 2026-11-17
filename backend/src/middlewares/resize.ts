@@ -13,7 +13,7 @@ import { generateIndex } from './generateIndex'
 function logReq(cache: boolean, start: [number, number], path: string, modifiers: unknown) {
 	const [s, ns] = process.hrtime(start)
 	const now = new Date().toISOString()
-	const time = `${(s + ns / 1e6).toFixed(0).padStart(4, ' ')}ms`
+	const time = `${(s * 1000 + ns / 1e6).toFixed(0).padStart(4, ' ')}ms`
 	const cacheStr = cache ? 'HIT ' : 'MISS'
 	console.log(now, time, cacheStr, path, modifiers)
 }
@@ -70,7 +70,11 @@ function resolveSource(requestPath: string) {
 	return filePath.startsWith(root + path.sep) ? filePath : undefined
 }
 
+// Resizes are rendered while the visitor waits; at sharp's default effort 4 AVIF encoding takes about 8s for a 1500px photo.
+const resizeEncodeOptions = { avif: { effort: 2 }, webp: {}, jpg: {} } as const satisfies Record<ImageFormat, object>
+
 async function renderImage(filePath: string, modifiers: Modifiers) {
+	const isResize = modifiers.w !== undefined || modifiers.h !== undefined
 	// The stored pixels are upright but many files carry a stale EXIF orientation; raw output drops it so no encoder rotates.
 	const { data, info } = await sharp(filePath)
 		.resize({
@@ -81,7 +85,7 @@ async function renderImage(filePath: string, modifiers: Modifiers) {
 		.raw()
 		.toBuffer({ resolveWithObject: true })
 	return sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
-		.toFormat(modifiers.f === 'jpg' ? 'jpeg' : modifiers.f)
+		.toFormat(modifiers.f === 'jpg' ? 'jpeg' : modifiers.f, isResize ? resizeEncodeOptions[modifiers.f] : {})
 		.toBuffer()
 }
 
@@ -107,7 +111,7 @@ async function storeRendered(files: ReturnType<typeof cacheFiles>, data: Buffer,
 	await fs.promises.rename(tmpPath, files.imgPath)
 }
 
-const warmFormats = ['avif', 'jpg'] as const
+const warmFormats = ['avif', 'webp', 'jpg'] as const
 
 async function warmAll() {
 	const start = Date.now()
