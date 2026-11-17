@@ -100,8 +100,11 @@ async function storeRendered(files: ReturnType<typeof cacheFiles>, data: Buffer,
 	await Promise.all([
 		fs.promises.writeFile(files.typePath, mimeType, 'utf-8'),
 		fs.promises.writeFile(files.etagPath, etagV, 'utf-8'),
-		fs.promises.writeFile(files.imgPath, data),
 	])
+	// The image file marks the entry as complete and doubles as a resize source, so it must never be seen half written.
+	const tmpPath = `${files.imgPath}.${Math.random()}.tmp`
+	await fs.promises.writeFile(tmpPath, data)
+	await fs.promises.rename(tmpPath, files.imgPath)
 }
 
 const warmFormats = ['avif', 'jpg'] as const
@@ -142,8 +145,9 @@ async function warmAll() {
 let warming = Promise.resolve()
 
 export function warmImageCache() {
-	warming = warming.then(warmAll).catch(err => console.error('image cache warm failed', err))
-	return warming
+	const run = warming.then(warmAll)
+	warming = run.catch(() => undefined)
+	return run
 }
 
 export async function resizeImage(req: Request, res: Response) {
@@ -194,7 +198,9 @@ export async function resizeImage(req: Request, res: Response) {
 	}
 	res.set('Last-Modified', stat.mtime.toUTCString())
 
-	const data = await exceptionAsValue(() => renderImage(sourcePath, modifiers))
+	const fullSizeJpg = cacheFiles(req.path, version, { f: 'jpg' }).imgPath
+	const renderSource = (await fsExists(fullSizeJpg)) ? fullSizeJpg : sourcePath
+	const data = await exceptionAsValue(() => renderImage(renderSource, modifiers))
 	if (data instanceof Error) {
 		return sendImageError(data, res)
 	}

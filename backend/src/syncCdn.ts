@@ -45,7 +45,7 @@ function isAuthorized(header: string | undefined) {
 
 let running = false
 
-export function syncCdnRouter(onSynced: () => void) {
+export function syncCdnRouter(onSynced: () => Promise<void>) {
 	const router = Router()
 	router.post('/api/sync-cdn', async (req, res) => {
 		res.set('Cache-Control', cacheControl.privateNoStore)
@@ -61,7 +61,7 @@ export function syncCdnRouter(onSynced: () => void) {
 		running = true
 		try {
 			const result = await sync()
-			onSynced()
+			await onSynced()
 			console.log('cdn synced', result)
 			res.json(result)
 		} catch (err) {

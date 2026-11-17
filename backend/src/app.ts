@@ -46,8 +46,8 @@ app.get<never, ApiRoutes['/projects-list']>('/projects-list', async (_, res) => 
 app.use(
 	syncCdnRouter(() => {
 		memoizedIndex.clear()
-		void warmImageCache()
 		projects = loadProjects()
+		return warmImageCache()
 	}),
 )
 
@@ -99,7 +99,7 @@ app.get('/{*splat}', (_, res) => {
 })
 
 app.listen(env.port, () => {
-	void warmImageCache()
+	warmImageCache().catch(err => console.error('image cache warm failed', err))
 	console.log(`listening on: http://localhost:${env.port}`)
 	console.log(`reading projects from: ${path.normalize(env.projects)}`)
 })
